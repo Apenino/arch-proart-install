@@ -20,7 +20,7 @@ if [[ $EUID -eq 0 ]]; then
     exit 1
 fi
 
-sudo -v
+sudo -n true 2>/dev/null || sudo -v
 
 # --------------------------------------------------------------------------
 # Dépôt multilib (nécessaire pour Steam)
