@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Script post-installation Arch Linux (ASUS ProArt)
-# - Logiciels de base : firefox, onlyoffice, steam, blender, git
+# - Logiciels de base : firefox, onlyoffice, steam, blender, git, discord, vlc
 # - Shell : kitty + zsh + oh-my-zsh + powerlevel10k (+ traînée du curseur)
 #
 # Usage : ./install.sh   (en utilisateur normal, sudo sera demandé)
@@ -55,7 +55,7 @@ install_packages() {
     info "Mise à jour du système et installation des paquets"
     local pkgs=(
         base-devel git curl
-        firefox steam blender
+        firefox steam blender discord vlc
         kitty zsh ttf-jetbrains-mono-nerd
     )
     mapfile -t vk < <(vulkan_packages)

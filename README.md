@@ -4,7 +4,7 @@ Script post-installation pour Arch Linux (ASUS ProArt).
 
 ## Ce qu'il installe
 
-- **Logiciels** : Firefox, OnlyOffice (AUR, via `yay`), Steam, Blender, Git
+- **Logiciels** : Firefox, OnlyOffice (AUR, via `yay`), Steam, Blender, Git, Discord, VLC
 - **Pilotes Vulkan 32 bits** adaptés au GPU détecté (Intel / AMD / NVIDIA) pour Steam
 - **Shell** : zsh + [Oh My Zsh](https://ohmyz.sh) + [Powerlevel10k](https://github.com/romkatv/powerlevel10k)
   - plugins : `git`, `sudo`, `colored-man-pages`, `zsh-autosuggestions`, `zsh-syntax-highlighting`
