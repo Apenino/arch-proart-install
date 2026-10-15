@@ -36,6 +36,8 @@ is_laptop() {
 }
 
 is_intel_cpu() { grep -qm1 GenuineIntel /proc/cpuinfo; }
+is_amd_cpu()   { grep -qm1 AuthenticAMD /proc/cpuinfo; }
+has_nvidia_gpu() { gpu_list | grep -qi nvidia; }
 
 gpu_list() { lspci 2>/dev/null | grep -E 'VGA compatible|3D controller|Display controller' || true; }
 

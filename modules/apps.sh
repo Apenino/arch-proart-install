@@ -22,6 +22,9 @@ module_apps() {
     ((${#vk[@]})) && pac_install "${vk[@]}"
 
     pac_install firefox steam blender discord vlc obsidian code proton-vpn-gtk-app
+    # Paquets supplémentaires choisis dans config.env (ex. solaar pour du matériel Logitech)
+    # shellcheck disable=SC2086
+    [[ -n ${EXTRA_PACKAGES:-} ]] && pac_install $EXTRA_PACKAGES
 
     # Dépôts officiels ou CachyOS si disponibles, sinon AUR (les PKGBUILD sont à relire)
     pkg_or_aur proton-pass proton-pass-bin

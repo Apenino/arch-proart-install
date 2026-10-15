@@ -1,6 +1,6 @@
 # arch-proart-install
 
-Script post-installation pour Arch Linux et dérivés (CachyOS...), pensé pour un ASUS ProArt.
+Script post-installation pour Arch Linux et dérivés (CachyOS...), pensé pour un ASUS ProArt (PC de bureau, Ryzen 9 9950X3D, RTX 5080 — voir [docs/MATERIEL.md](docs/MATERIEL.md)).
 Il configure la machine de bout en bout : système, sécurité, shell, applications, bureau et démarrage.
 
 > **Pas de gestion de CachyOS ici** : le noyau, les dépôts et les optimisations CachyOS viennent de
@@ -37,6 +37,7 @@ fichiers remplacés sont sauvegardés en `*.bak.<date>`.
 | `shell` | zsh + oh-my-zsh + powerlevel10k + autosuggestions/syntax-highlighting, kitty (thème sombre, trainée du curseur) |
 | `apps` | Firefox, Steam (+ Vulkan 32 bits selon le GPU), Blender, Discord, VLC, Obsidian, VS Code (Code-OSS), Proton VPN / Pass / Mail, OnlyOffice |
 | `desktop` | Hyprland + [Lucid](https://github.com/Sn3akyy1/lucid) (version **épinglée et vérifiée par commit**), SDDM avec le thème Lucid, clavier du système, curseur sans rotation, nettoyage sûr des paquets inutiles |
+| `hardware` | microcode CPU ; **pilote NVIDIA open** (RTX 50 : indispensable), paramètres noyau `nvidia-drm`, chargement précoce des modules, variables d'environnement Hyprland |
 | `boot` | Démarrage silencieux avec le logo Arch (Plymouth), menu du bootloader masqué |
 
 ## Configuration (`config.env`)
@@ -76,7 +77,7 @@ adresse personnelle n'est dans le dépôt**.
 
 ## État des tests
 
-Testé sur **Arch Linux + systemd-boot (images UKI) + Btrfs**, sur un Dell Intel. Les modules ont été
+Testé sur **Arch Linux + systemd-boot (images UKI) + Btrfs**, sur un portable Intel (Dell). Le module `hardware` (NVIDIA) est vérifié par tests unitaires et simulation de GPU, **pas sur la vraie carte**. Les modules ont été
 validés en `--dry-run` (idempotence) et à la main. **Pas encore testé sur une installation CachyOS
 fraîche** (autre bootloader possible, autres valeurs par défaut) : lance d'abord `./install.sh --dry-run`
 et relis ce qui est affiché.
@@ -84,7 +85,7 @@ et relis ce qui est affiché.
 ## Historique et décisions
 
 Tout ce qui a été fait sur la machine de référence, les pièges rencontrés et ce qui reste à faire :
-**[docs/HISTORIQUE.md](docs/HISTORIQUE.md)**.
+**[docs/HISTORIQUE.md](docs/HISTORIQUE.md)**. La fiche de la machine cible : **[docs/MATERIEL.md](docs/MATERIEL.md)**.
 
 ## Structure
 
@@ -95,6 +96,7 @@ lib/common.sh           journalisation, --dry-run, détection matériel/bootload
 modules/                base, system, security, shell, apps, desktop, boot
 files/                  fichiers installés tels quels (sysctl, règles audit, profil AppArmor, thème Plymouth)
 docs/HISTORIQUE.md     historique complet, décisions, pièges, pistes
+docs/MATERIEL.md       fiche matérielle de la machine cible
 dotfiles/
 ├── kitty/kitty.conf    config kitty
 └── zsh/

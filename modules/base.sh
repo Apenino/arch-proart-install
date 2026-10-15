@@ -16,7 +16,8 @@ module_base() {
     fi
 
     run sudo pacman -Syu --noconfirm
-    pac_install base-devel git curl
+    # pciutils : indispensable à la détection du GPU (lspci) ; sans lui, aucun GPU ne serait détecté
+    pac_install base-devel git curl pciutils
 
     ensure_aur_helper
 }

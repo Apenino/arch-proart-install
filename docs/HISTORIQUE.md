@@ -224,3 +224,19 @@ Commandes utiles : `sudo snapper -c root create -d "avant X" -c important` (snap
 3. Ajouter un module de sauvegarde externe.
 4. Mettre à jour Lucid : changer `LUCID_REF` et `LUCID_COMMIT` après relecture des changements
    (version actuelle `v1.20.1`, commit `2601b9abbc81d6952bffb47101c4b3b45d6eb8d9`).
+
+## 10. Machine cible et module `hardware`
+
+Après la mise au point sur la machine de référence, la fiche de la machine cible (export `msinfo32` de Windows)
+a permis d'adapter le script : voir [MATERIEL.md](MATERIEL.md). Constat principal : c'est un **PC de bureau AMD
+avec une RTX 5080**, très différent d'un portable Intel. Changements :
+
+- nouveau module **`hardware`** : microcode (`amd-ucode`/`intel-ucode`) et pilote NVIDIA **open** (obligatoire pour
+  Blackwell) avec paramètres noyau `nvidia-drm.modeset=1 nvidia-drm.fbdev=1`, modules NVIDIA dans l'initramfs
+  (utile pour Plymouth et Wayland) et variables d'environnement Hyprland ;
+- `pciutils` ajouté à `base` : la détection du GPU (`lspci`) renvoyait sinon « aucun GPU » sans erreur ;
+- `EXTRA_PACKAGES` dans `config.env` pour des paquets en plus (ex. `solaar`) ;
+- une expression de détection des « anciens » GPU NVIDIA classait à tort les GTX 16xx (Turing) comme non
+  compatibles avec les modules open : corrigé après test.
+
+Non testé sur la vraie carte : les noms de paquets ont été vérifiés dans les dépôts, la logique par simulation.

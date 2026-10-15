@@ -8,6 +8,7 @@
 #   shell     zsh + oh-my-zsh + powerlevel10k + kitty
 #   apps      Firefox, Steam, Blender, Obsidian, VS Code, Proton, OnlyOffice...
 #   desktop   Hyprland + shell Lucid + SDDM
+#   hardware  microcode, pilote NVIDIA (open) et réglages Hyprland/boot associés
 #   boot      démarrage silencieux avec logo (Plymouth)
 #
 # Usage : ./install.sh [--dry-run] [--only a,b] [--skip a,b] [--list] [-h]
@@ -23,7 +24,7 @@ export FILES="$REPO_DIR/files"
 # shellcheck source=lib/common.sh
 source "$REPO_DIR/lib/common.sh"
 
-ALL_MODULES=(base system security shell apps desktop boot)
+ALL_MODULES=(base system security shell apps desktop hardware boot)
 ONLY=""
 SKIP=""
 DRY_RUN=0
@@ -52,7 +53,7 @@ fi
 # Configuration (config.env, voir config.env.example) — jamais commitée
 # --------------------------------------------------------------------------
 HOSTNAME_NEW="" LAN_CIDR="" SSH_GITHUB_USER="" SSH_DISABLE_PASSWORD="no" FAIL2BAN_IGNORE=""
-APPARMOR_MODE="complain" BOOT_SPLASH="yes" BOOT_HIDE_MENU="yes" PRUNE="yes" KB_LAYOUT=""
+EXTRA_PACKAGES="" APPARMOR_MODE="complain" BOOT_SPLASH="yes" BOOT_HIDE_MENU="yes" PRUNE="yes" KB_LAYOUT=""
 LUCID_REF="v1.20.1" LUCID_COMMIT="2601b9abbc81d6952bffb47101c4b3b45d6eb8d9"
 if [[ -f $REPO_DIR/config.env ]]; then
     # shellcheck source=/dev/null
@@ -60,7 +61,7 @@ if [[ -f $REPO_DIR/config.env ]]; then
     info "Configuration chargée : config.env"
 fi
 export HOSTNAME_NEW LAN_CIDR SSH_GITHUB_USER SSH_DISABLE_PASSWORD FAIL2BAN_IGNORE
-export APPARMOR_MODE BOOT_SPLASH BOOT_HIDE_MENU PRUNE KB_LAYOUT LUCID_REF LUCID_COMMIT
+export EXTRA_PACKAGES APPARMOR_MODE BOOT_SPLASH BOOT_HIDE_MENU PRUNE KB_LAYOUT LUCID_REF LUCID_COMMIT
 
 in_list() { [[ ",$2," == *",$1,"* ]]; }
 
