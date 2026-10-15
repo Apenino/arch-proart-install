@@ -29,6 +29,10 @@ profile sshd /usr/bin/sshd @FLAGS@{
   network inet stream,
   network inet6 stream,
   network unix stream,
+  # sd_notify (READY=1) : socket datagramme vers systemd. Sans ces règles, certains noyaux (CachyOS)
+  # refusent l'envoi et systemd croit que sshd ne démarre jamais.
+  network unix dgram,
+  unix (create, connect, send, receive, getattr, setopt, shutdown) type=dgram,
   network netlink raw,
 
   signal (send,receive) peer=sshd,
