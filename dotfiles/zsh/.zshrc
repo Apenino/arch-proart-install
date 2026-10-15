@@ -1,14 +1,14 @@
-# Powerlevel10k instant prompt (doit rester en haut du fichier)
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
 export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="powerlevel10k/powerlevel10k"
-
-plugins=(git sudo colored-man-pages zsh-autosuggestions zsh-syntax-highlighting)
-
+ZSH_THEME="robbyrussell"
+plugins=(git sudo history colored-man-pages)
 source $ZSH/oh-my-zsh.sh
 
-# Config Powerlevel10k (relancer avec: p10k configure)
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+export EDITOR=nano
+export PATH="$HOME/.local/bin:$PATH"
+HISTSIZE=10000
+SAVEHIST=10000
+alias ll='ls -lah --color=auto'
+alias update='sudo pacman -Syu'

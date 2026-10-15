@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Module shell : zsh + oh-my-zsh + powerlevel10k + plugins, et kitty.
+# Module shell : zsh + oh-my-zsh (thème robbyrussell) avec les plugins système autosuggestions et
+# syntax-highlighting. Le prompt starship et la config de kitty sont posés par Lucid (module desktop).
 # shellcheck shell=bash
 
 _clone_or_update() {
@@ -23,25 +24,29 @@ _install_dotfile() {
     ok "Installé : $dest"
 }
 
+# Retire powerlevel10k et les plugins clonés à la main (les paquets système les remplacent).
+_remove_p10k() {
+    local zsh_custom="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}" p
+    for p in "$zsh_custom/themes/powerlevel10k" "$zsh_custom/plugins/zsh-autosuggestions" "$zsh_custom/plugins/zsh-syntax-highlighting"; do
+        [[ -d $p ]] && { run rm -rf "$p"; ok "Retiré : $p"; }
+    done
+    if [[ -f $HOME/.p10k.zsh ]]; then
+        dry || mv "$HOME/.p10k.zsh" "$HOME/.p10k.zsh.bak.$(date +%Y%m%d%H%M%S)"
+        ok "powerlevel10k : ~/.p10k.zsh mis de côté (.bak)"
+    fi
+    return 0
+}
+
 module_shell() {
-    info "Shell : zsh + oh-my-zsh + powerlevel10k"
-    pac_install zsh kitty ttf-jetbrains-mono-nerd
+    info "Shell : zsh + oh-my-zsh"
+    pac_install zsh zsh-completions zsh-autosuggestions zsh-syntax-highlighting starship kitty ttf-jetbrains-mono-nerd
 
-    local zsh_custom="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-    _clone_or_update https://github.com/ohmyzsh/ohmyzsh.git                  "$HOME/.oh-my-zsh"
-    _clone_or_update https://github.com/romkatv/powerlevel10k.git            "$zsh_custom/themes/powerlevel10k"
-    _clone_or_update https://github.com/zsh-users/zsh-autosuggestions        "$zsh_custom/plugins/zsh-autosuggestions"
-    _clone_or_update https://github.com/zsh-users/zsh-syntax-highlighting    "$zsh_custom/plugins/zsh-syntax-highlighting"
-
-    _install_dotfile "$DOTFILES/zsh/.zshrc"    "$HOME/.zshrc"
-    _install_dotfile "$DOTFILES/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
+    _clone_or_update https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh"
+    _remove_p10k
+    _install_dotfile "$DOTFILES/zsh/.zshrc" "$HOME/.zshrc"
 
     if [[ "$(getent passwd "$USER" | cut -d: -f7)" != /usr/bin/zsh ]]; then
         run sudo chsh -s /usr/bin/zsh "$USER"
     fi
-    ok "Shell configuré"
-
-    info "Configuration de kitty"
-    _install_dotfile "$DOTFILES/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
-    ok "kitty configuré (zsh + traînée du curseur)"
+    ok "Shell configuré (le prompt starship et kitty viennent de Lucid)"
 }

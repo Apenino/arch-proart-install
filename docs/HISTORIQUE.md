@@ -175,8 +175,8 @@ Proton Drive : aucune application Linux n'existe.
 
 | Sujet | Machine de référence | Script |
 |---|---|---|
-| Prompt | starship (installé par Lucid) | **powerlevel10k** (choix d'origine du dépôt) ; Lucid est lancé avec `--no-look` |
-| Terminal / shell | kitty configuré par Lucid | kitty du dépôt (zsh, trainée du curseur) |
+| Prompt | starship (installé par Lucid) | identique (powerlevel10k a été abandonné, §14) |
+| Terminal / shell | kitty configuré par Lucid | identique (look complet de Lucid, `shell zsh`) |
 | Profil AppArmor `sshd` | enforce | complain (option `APPARMOR_MODE`) |
 | Image `fallback` verbeuse | oui | non (spécifique à la configuration UKI) |
 | CachyOS (dépôts, noyau, réglages) | installé à la main | **hors périmètre** : fourni par l'ISO CachyOS |
@@ -295,4 +295,20 @@ connexions SSH réussissaient. Journal : `ssh_systemd_notify: socket "/run/syste
   jamais dans un dossier que le service parcourt.
 - **Leçon de méthode** : un correctif « qui marche à chaud » doit être revalidé **à froid** (redémarrage), et un
   profil AppArmor chargé doit se comparer au fichier voulu (`/sys/kernel/security/apparmor/profiles`).
+
+## 14. Finitions sur la machine cible
+
+- **Écrans** : Lucid place les écrans « automatiquement » dans l'ordre des connecteurs, ce qui peut inverser la
+  disposition voulue (SDDM, lui, suit un autre ordre). La disposition explicite s'écrit dans
+  `~/.config/hypr/lucid-monitors.lua` (format de la page *Réglages > Affichage*, appliqué à chaud par
+  `hyprctl eval "LucidMonitors.apply()"`). L'écran de la barre, du dock et des widgets se règle par l'IPC de Lucid :
+  `qs ipc call -- displays shell <écran>` (puis `bar auto`, `dock auto` pour qu'ils suivent). Ces préférences sont dans
+  `~/.config/quickshell/lucidprefs/prefs.json`, dossier que l'installeur de Lucid peut déplacer : le module `desktop`
+  les met de côté et les restaure.
+- **SSH** : mot de passe coupé (`SSH_DISABLE_PASSWORD="yes"`) après vérification qu'une clé fonctionne et qu'un essai par
+  mot de passe est refusé. `AllowUsers`, `fail2ban`, pare-feu inchangés.
+- **Shell** : powerlevel10k abandonné au profit de l'environnement de la machine de référence : oh-my-zsh
+  (`robbyrussell`), plugins système, starship et kitty fournis par Lucid (qui n'est plus lancé avec `--no-look`).
+  `fish` est retiré s'il n'est plus le shell de connexion ; un paquet exigé par un autre (ex. `cachyos-fish-config`)
+  est conservé sans bloquer le reste du nettoyage.
 

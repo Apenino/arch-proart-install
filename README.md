@@ -34,9 +34,9 @@ fichiers remplacés sont sauvegardés en `*.bak.<date>`.
 | `base` | `pacman.conf` (Color, téléchargements parallèles, multilib), mise à jour, assistant AUR (`paru`, sinon `yay`) |
 | `system` | Btrfs (COW + checksums + `noatime` + zstd), snapshots **snapper** sur sous-volumes dédiés + `snap-pac`, `fstrim`, scrub mensuel, `paccache`, `fwupd`, `reflector` (Arch), profils d'énergie + `thermald` sur portable, nom d'hôte, masquage des unités TPM NvPCR en échec |
 | `security` | `sshd` durci, pare-feu `ufw` (SSH depuis le réseau local seulement), `fail2ban`, `auditd`, AppArmor (profil `sshd`), sysctl, LLMNR/mDNS coupés |
-| `shell` | zsh + oh-my-zsh + powerlevel10k + autosuggestions/syntax-highlighting, kitty (thème sombre, trainée du curseur) |
+| `shell` | zsh + oh-my-zsh (thème `robbyrussell`) + plugins système autosuggestions et syntax-highlighting ; le prompt **starship** et kitty viennent de Lucid |
 | `apps` | Firefox, Steam (+ Vulkan 32 bits selon le GPU), Blender, Discord, VLC, Obsidian, VS Code (Code-OSS), Proton VPN / Pass / Mail, OnlyOffice |
-| `desktop` | Hyprland + [Lucid](https://github.com/Sn3akyy1/lucid) (version **épinglée et vérifiée par commit**), SDDM avec le thème Lucid, clavier du système, curseur sans rotation, nettoyage sûr des paquets inutiles |
+| `desktop` | Hyprland + [Lucid](https://github.com/Sn3akyy1/lucid) avec son look complet (starship, kitty) — version **épinglée et vérifiée par commit** —, SDDM avec le thème Lucid, clavier du système, curseur sans rotation, nettoyage sûr des paquets inutiles |
 | `hardware` | microcode CPU ; **pilote NVIDIA open** (RTX 50 : indispensable), paramètres noyau `nvidia-drm`, chargement précoce des modules, variables d'environnement Hyprland |
 | `boot` | Démarrage silencieux avec le logo Arch (Plymouth), menu du bootloader masqué |
 
@@ -98,9 +98,5 @@ modules/                base, system, security, shell, apps, desktop, boot
 files/                  fichiers installés tels quels (sysctl, règles audit, profil AppArmor, thème Plymouth)
 docs/HISTORIQUE.md     historique complet, décisions, pièges, pistes
 docs/MATERIEL.md       fiche matérielle de la machine cible
-dotfiles/
-├── kitty/kitty.conf    config kitty
-└── zsh/
-    ├── .zshrc          config zsh / oh-my-zsh
-    └── .p10k.zsh       config du prompt Powerlevel10k (refaire avec `p10k configure`)
+dotfiles/zsh/.zshrc    config zsh / oh-my-zsh (starship est ajouté par Lucid)
 ```

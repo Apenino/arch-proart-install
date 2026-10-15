@@ -24,9 +24,37 @@ _lucid_fetch() {
 }
 
 _lucid_install() {
-    info "Lucid : installation (sans les applications du dock ni le look : kitty/zsh restent les tiens)"
-    dry && { printf '\e[2m  [dry-run] lancerait %s/install.sh -y --no-apps --no-look\e[0m\n' "$LUCID_DIR"; return 0; }
-    (cd "$LUCID_DIR" && ./install.sh -y --no-apps --no-look)
+    local flags=(-y --no-apps)
+    [[ -n ${LUCID_INSTALL_FLAGS:-} ]] && read -ra flags <<<"$LUCID_INSTALL_FLAGS"
+    info "Lucid : installation (${flags[*]}) — thème, prompt starship, kitty"
+    dry && { printf '\e[2m  [dry-run] lancerait %s/install.sh %s\e[0m\n' "$LUCID_DIR" "${flags[*]}"; return 0; }
+    # Les préférences de Lucid (écran de la barre, etc.) vivent dans ~/.config/quickshell : on les met de côté
+    local prefs="$HOME/.config/quickshell/lucidprefs/prefs.json" keep=""
+    if [[ -f $prefs ]]; then keep="$(mktemp)"; cp "$prefs" "$keep"; fi
+    (cd "$LUCID_DIR" && ./install.sh "${flags[@]}")
+    if [[ -n $keep ]]; then
+        if [[ ! -f $prefs ]] || ! cmp -s "$keep" "$prefs"; then
+            install -D -m 644 "$keep" "$prefs"
+            ok "Préférences de Lucid restaurées"
+        fi
+        rm -f "$keep"
+    fi
+}
+
+# kitty : Lucid écrit "shell fish" ; le shell de connexion est zsh
+_kitty_zsh() {
+    local conf="$HOME/.config/kitty/kitty.conf"
+    [[ -f $conf ]] || return 0
+    if grep -qE '^shell fish$' "$conf"; then
+        run sed -i -E 's/^shell fish$/shell zsh/' "$conf"
+        ok "kitty : shell zsh"
+    fi
+    # config.fish créé par Lucid : inutile sans fish
+    local cf="$HOME/.config/fish/config.fish"
+    if [[ -f $cf ]] && [[ "$(grep -vcE '^(#.*|)$' "$cf")" == 1 ]] && grep -q 'starship init fish' "$cf"; then
+        run rm -f "$cf"; run rmdir --ignore-fail-on-non-empty "$HOME/.config/fish"
+    fi
+    return 0
 }
 
 # Lucid remplace le clavier par "us" : on remet celui du système.
@@ -91,16 +119,18 @@ PY
     for p in "${keep[@]}"; do pkg_installed "$p" && installed+=("$p"); done
     ((${#installed[@]})) && sudo pacman -D --asexplicit "${installed[@]}" >/dev/null
 
-    local cands=() c
+    local cands=() c login_shell
     for c in kdeconnect sshfs dunst polkit-kde-agent wofi noto-fonts-cjk; do pkg_installed "$c" && cands+=("$c"); done
-    # dolphin seulement si Nautilus est là pour le remplacer
+    # dolphin seulement si Nautilus est là pour le remplacer ; fish seulement si ce n'est plus le shell de connexion
     pkg_installed dolphin && pkg_installed nautilus && cands+=(dolphin)
-    if ((${#cands[@]})); then
-        sudo pacman -Rs --noconfirm "${cands[@]}"
-        ok "Retirés : ${cands[*]}"
-    else
-        ok "Rien à nettoyer"
-    fi
+    login_shell="$(getent passwd "$USER" | cut -d: -f7)"
+    pkg_installed fish && [[ $login_shell != */fish ]] && cands+=(fish)
+    # un par un : un paquet que d'autres exigent (ex. cachyos-fish-config pour fish) ne bloque pas les autres
+    local removed=()
+    for c in "${cands[@]}"; do
+        if sudo pacman -Rs --noconfirm "$c" >/dev/null 2>&1; then removed+=("$c"); else warn "Conservé (dépendance d'un autre paquet) : $c"; fi
+    done
+    if ((${#removed[@]})); then ok "Retirés : ${removed[*]}"; else ok "Rien à nettoyer"; fi
 
     # Si KDE Connect est resté (PRUNE partiel), on l'empêche au moins de démarrer
     if pkg_installed kdeconnect; then
@@ -114,6 +144,7 @@ module_desktop() {
     pac_install hyprland uwsm sddm xdg-desktop-portal-hyprland nautilus
     _lucid_fetch
     _lucid_install
+    _kitty_zsh
     _hypr_tweaks
     _sddm
     _prune

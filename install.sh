@@ -53,7 +53,7 @@ fi
 # Configuration (config.env, voir config.env.example) — jamais commitée
 # --------------------------------------------------------------------------
 HOSTNAME_NEW="" LAN_CIDR="" SSH_GITHUB_USER="" SSH_DISABLE_PASSWORD="no" FAIL2BAN_IGNORE=""
-EXTRA_PACKAGES="" AUR_REVIEW="yes" APPARMOR_MODE="complain" BOOT_SPLASH="yes" PLYMOUTH_THEME="arch-logo" BOOT_HIDE_MENU="yes" PRUNE="yes" KB_LAYOUT=""
+EXTRA_PACKAGES="" LUCID_INSTALL_FLAGS="" AUR_REVIEW="yes" APPARMOR_MODE="complain" BOOT_SPLASH="yes" PLYMOUTH_THEME="arch-logo" BOOT_HIDE_MENU="yes" PRUNE="yes" KB_LAYOUT=""
 LUCID_REF="3d6ed3b84edf7c31d24117eb58ed86cb357113c5" LUCID_COMMIT="3d6ed3b84edf7c31d24117eb58ed86cb357113c5"
 if [[ -f $REPO_DIR/config.env ]]; then
     # shellcheck source=/dev/null
@@ -61,7 +61,7 @@ if [[ -f $REPO_DIR/config.env ]]; then
     info "Configuration chargée : config.env"
 fi
 export HOSTNAME_NEW LAN_CIDR SSH_GITHUB_USER SSH_DISABLE_PASSWORD FAIL2BAN_IGNORE
-export EXTRA_PACKAGES AUR_REVIEW APPARMOR_MODE BOOT_SPLASH PLYMOUTH_THEME BOOT_HIDE_MENU PRUNE KB_LAYOUT LUCID_REF LUCID_COMMIT
+export EXTRA_PACKAGES LUCID_INSTALL_FLAGS AUR_REVIEW APPARMOR_MODE BOOT_SPLASH PLYMOUTH_THEME BOOT_HIDE_MENU PRUNE KB_LAYOUT LUCID_REF LUCID_COMMIT
 
 in_list() { [[ ",$2," == *",$1,"* ]]; }
 
