@@ -71,14 +71,24 @@ _nvidia_hyprland_env() {
         ok "Pas de config Hyprland pour l'instant : réglages NVIDIA ignorés (relance ce module après 'desktop')"
         return 0
     fi
-    dry && { printf '\e[2m  [dry-run] écrirait %s\e[0m\n' "$mod"; return 0; }
-    install -d "$(dirname "$mod")"
-    cat >"$mod" <<'EOF'
+    local want
+    want="$(cat <<'LUA'
 -- Réglages NVIDIA pour Hyprland (écrit par arch-proart-install)
 hl.env("LIBVA_DRIVER_NAME", "nvidia")
 hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
 hl.env("NVD_BACKEND", "direct")
-EOF
+LUA
+)"
+    if [[ -f $mod ]] && [[ "$(cat "$mod")" == "$want" ]]; then
+        ok "Inchangé : $mod"
+    elif dry; then
+        printf '\e[2m  [dry-run] écrirait %s\e[0m\n' "$mod"
+        return 0
+    else
+        install -d "$(dirname "$mod")"
+        printf '%s\n' "$want" >"$mod"
+        ok "Environnement NVIDIA pour Hyprland : $mod"
+    fi
     if ! grep -q 'require("modules.nvidia")' "$cfg"; then
         backup "$cfg"
         printf '\nrequire("modules.nvidia")\n' >>"$cfg"

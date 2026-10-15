@@ -80,6 +80,8 @@ _sddm() {
 [Theme]
 Current=lucid
 EOF
+    elif grep -q '^Current=lucid$' "$conf"; then
+        ok "SDDM : thème déjà lucid"
     elif grep -q '^Current=' "$conf"; then
         run sudo sed -i 's/^Current=.*/Current=lucid/' "$conf"
     else

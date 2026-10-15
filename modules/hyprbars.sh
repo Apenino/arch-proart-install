@@ -41,25 +41,21 @@ module_hyprbars() {
         return 0
     fi
 
-    # compilation : la première fois ; ensuite « ensure » recompile si Hyprland a changé depuis
-    local so="${XDG_DATA_HOME:-$HOME/.local/share}/lucid/plugins/hyprbars.so"
-    if [[ ! -f $so ]]; then
-        "$loader" build
-    else
-        "$loader" ensure || warn "Recompilation impossible pour cette version de Hyprland (hyprbars-plugin.sh build)"
-    fi
-
-    # chargement à chaud si une session Hyprland tourne (sinon : au prochain démarrage de session)
+    # session Hyprland en cours (si on la lance depuis SSH ou un terminal, la variable n'est pas héritée)
     local rt="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" newest
     if [[ -z ${HYPRLAND_INSTANCE_SIGNATURE:-} && -d $rt/hypr ]]; then
         newest="$(find "$rt/hypr" -mindepth 1 -maxdepth 1 -printf '%T@ %f\n' | sort -rn | head -1 | cut -d' ' -f2)"
         [[ -n $newest ]] && export XDG_RUNTIME_DIR="$rt" HYPRLAND_INSTANCE_SIGNATURE="$newest"
     fi
+
+    # compilation la première fois ; ensuite « ensure » recompile si Hyprland a changé, puis charge le plugin
+    local so="${XDG_DATA_HOME:-$HOME/.local/share}/lucid/plugins/hyprbars.so"
+    [[ -f $so ]] || "$loader" build
     if [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]]; then
-        if "$loader" load; then
-            ok "Plugin chargé dans la session en cours"
+        if "$loader" ensure; then
+            ok "Plugin compilé pour cette version de Hyprland et chargé dans la session en cours"
         else
-            warn "Chargement à chaud impossible : il le sera à la prochaine connexion"
+            warn "Compilation ou chargement impossible : voir « hyprbars-plugin.sh status »"
         fi
     else
         ok "Plugin compilé : il se chargera à la prochaine connexion Hyprland"

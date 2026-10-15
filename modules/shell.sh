@@ -25,13 +25,34 @@ _remove_p10k() {
     return 0
 }
 
+# .zshrc : Lucid y ajoute son bloc starship ("# added by Lucid"). On compare sans ce bloc pour rester idempotent,
+# et si le fichier doit être remplacé, on remet le bloc à la fin.
+_install_zshrc() {
+    local src="$DOTFILES/zsh/.zshrc" dest="$HOME/.zshrc" block=""
+    _strip_trailing_blanks() { sed -e :a -e '/^[[:space:]]*$/{$d;N;ba' -e '}'; }
+    if [[ -f $dest ]]; then
+        block="$(awk '/^# added by Lucid/ {f=1} f' "$dest")"
+        if cmp -s <(_strip_trailing_blanks <"$src") <(awk '/^# added by Lucid/ {exit} {print}' "$dest" | _strip_trailing_blanks); then
+            ok "Inchangé : $dest (hors bloc Lucid)"
+            return 0
+        fi
+    fi
+    if dry; then
+        printf '\e[2m  [dry-run] installerait %s\n\e[0m' "$dest"
+        return 0
+    fi
+    install_user_file "$src" "$dest"
+    [[ -n $block ]] && printf '\n%s\n' "$block" >>"$dest"
+    return 0
+}
+
 module_shell() {
     info "Shell : zsh + oh-my-zsh"
     pac_install zsh zsh-completions zsh-autosuggestions zsh-syntax-highlighting starship kitty ttf-jetbrains-mono-nerd
 
     _clone_or_update https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh"
     _remove_p10k
-    install_user_file "$DOTFILES/zsh/.zshrc" "$HOME/.zshrc"
+    _install_zshrc
 
     if [[ "$(getent passwd "$USER" | cut -d: -f7)" != /usr/bin/zsh ]]; then
         run sudo chsh -s /usr/bin/zsh "$USER"

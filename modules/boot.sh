@@ -67,6 +67,10 @@ _hide_boot_menu() {
     # l'ESP est en 0700 root : le test d'existence doit se faire avec sudo
     for f in /boot/loader/loader.conf /efi/loader/loader.conf; do sudo test -f "$f" && lc=$f && break; done
     [[ -n ${lc:-} ]] || return 0
+    if sudo grep -qE '^timeout 0$' "$lc" && sudo grep -qE '^editor no$' "$lc"; then
+        ok "Menu du bootloader déjà masqué"
+        return 0
+    fi
     run sudo cp -a "$lc" "$lc.bak"
     if sudo grep -qE '^timeout' "$lc"; then
         run sudo sed -i -E 's/^timeout.*/timeout 0/' "$lc"
