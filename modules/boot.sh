@@ -64,7 +64,8 @@ _plymouth_hook() {
 _hide_boot_menu() {
     [[ ${BOOT_HIDE_MENU:-yes} == yes && "$(detect_bootloader)" == systemd-boot ]] || return 0
     local lc f
-    for f in /boot/loader/loader.conf /efi/loader/loader.conf; do [[ -f $f ]] && lc=$f && break; done
+    # l'ESP est en 0700 root : le test d'existence doit se faire avec sudo
+    for f in /boot/loader/loader.conf /efi/loader/loader.conf; do sudo test -f "$f" && lc=$f && break; done
     [[ -n ${lc:-} ]] || return 0
     run sudo cp -a "$lc" "$lc.bak"
     if sudo grep -qE '^timeout' "$lc"; then
