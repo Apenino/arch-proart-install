@@ -52,6 +52,8 @@ profile sshd /usr/bin/sshd @FLAGS@{
   /etc/environment               r,
   /etc/security/**               r,
   /etc/motd                      r,
+  /{etc,run,usr/lib}/motd.d/     r,
+  /{etc,run,usr/lib}/motd.d/**   r,
   /etc/issue{,.net}              r,
   /etc/login.defs                r,
   /etc/locale.conf               r,
