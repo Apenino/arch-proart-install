@@ -23,22 +23,37 @@ _plymouth_theme() {
     fi
 }
 
-# Insère le hook plymouth dans HOOKS (après "systemd" si l'initramfs est basé sur systemd, sinon après "udev").
+# HOOKS effectifs, calculés comme mkinitcpio : config principale, puis fragments dans l'ordre.
+# (Un fragment peut dériver la liste, ex. CachyOS : HOOKS=(${HOOKS[@]/kms/}).)
+_effective_hooks() {
+    local cfgs=()
+    if [[ -n ${MKINIT_CONF_FILES:-} ]]; then
+        read -ra cfgs <<<"$MKINIT_CONF_FILES"
+    else
+        cfgs=(/etc/mkinitcpio.conf /etc/mkinitcpio.conf.d/*.conf)
+    fi
+    bash -c 'for f in "$@"; do [[ -f $f ]] && source "$f"; done; echo "${HOOKS[*]}"' _ "${cfgs[@]}" 2>/dev/null
+}
+
+# Insère le hook plymouth dans la liste HOOKS de la config principale (après "systemd" si l'initramfs
+# est basé sur systemd, sinon après "udev"), seulement s'il manque dans la liste effective.
 _plymouth_hook() {
     if ! command -v mkinitcpio >/dev/null 2>&1; then
         warn "mkinitcpio absent (dracut ?) : ajoute le module plymouth à ta config d'initramfs à la main."
         return 0
     fi
-    local conf=/etc/mkinitcpio.conf f
-    for f in /etc/mkinitcpio.conf.d/*.conf; do
-        [[ -f $f ]] && grep -qE '^\s*HOOKS=' "$f" && conf="$f"
-    done
-    if grep -E '^\s*HOOKS=' "$conf" | grep -qw plymouth; then
-        ok "Hook plymouth déjà présent ($conf)"
+    local eff conf=${MKINIT_MAIN_CONF:-/etc/mkinitcpio.conf}
+    eff="$(_effective_hooks)"
+    if grep -qw plymouth <<<"$eff"; then
+        ok "Hook plymouth déjà présent (HOOKS effectifs)"
         return 0
     fi
     local after=udev
-    grep -E '^\s*HOOKS=' "$conf" | grep -qw systemd && after=systemd
+    grep -qw systemd <<<"$eff" && after=systemd
+    if ! grep -E '^\s*HOOKS=' "$conf" | grep -qw "$after"; then
+        warn "Le hook '$after' n'est pas dans $conf : ajoute 'plymouth' à HOOKS à la main."
+        return 0
+    fi
     run sudo cp -a "$conf" "$conf.bak.$(date +%Y%m%d%H%M%S)"
     run sudo sed -i -E "/^\s*HOOKS=/ s/\b$after\b/$after plymouth/" "$conf"
     # shellcheck disable=SC2034

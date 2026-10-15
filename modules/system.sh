@@ -7,19 +7,30 @@ _btrfs_options() {
     is_btrfs || { ok "Racine non Btrfs : options Btrfs ignorées"; return 0; }
     info "Btrfs : options de montage"
 
+    local changed=0
     if grep -qE 'nodatacow|nodatasum' /etc/fstab; then
         warn "fstab : nodatacow/nodatasum retirés (ils désactivent le COW et les checksums)"
         run sudo cp -a /etc/fstab "/etc/fstab.bak.$(date +%Y%m%d%H%M%S)"
         run sudo sed -i -E '/btrfs/ s/,(nodatasum|nodatacow)//g' /etc/fstab
+        changed=1
     fi
     # noatime (sauf si déjà là) et compression zstd (sauf si une compression est déjà choisie)
-    run sudo sed -i -E '/[[:space:]]btrfs[[:space:]]/ { /noatime/! s/,relatime/,noatime/ }' /etc/fstab
-    run sudo sed -i -E '/[[:space:]]btrfs[[:space:]]/ { /compress/! s/(btrfs[[:space:]]+[^[:space:]]+)/\1,compress=zstd:1/ }' /etc/fstab
+    local btrfs_lines
+    btrfs_lines="$(grep -E '^[^#].*[[:space:]]btrfs[[:space:]]' /etc/fstab || true)"
+    if grep -q relatime <<<"$btrfs_lines" || grep -vq compress <<<"$btrfs_lines"; then
+        run sudo sed -i -E '/[[:space:]]btrfs[[:space:]]/ { /noatime/! s/,relatime/,noatime/ }' /etc/fstab
+        run sudo sed -i -E '/[[:space:]]btrfs[[:space:]]/ { /compress/! s/(btrfs[[:space:]]+[^[:space:]]+)/\1,compress=zstd:1/ }' /etc/fstab
+        changed=1
+    fi
 
-    local mp
-    while read -r mp; do
-        run sudo mount -o remount,datacow,datasum,noatime "$mp" || warn "Remontage impossible : $mp (effectif au prochain démarrage)"
-    done < <(findmnt -rn -t btrfs -o TARGET)
+    if ((changed)); then
+        local mp
+        while read -r mp; do
+            run sudo mount -o remount,datacow,datasum,noatime "$mp" || warn "Remontage impossible : $mp (effectif au prochain démarrage)"
+        done < <(findmnt -rn -t btrfs -o TARGET)
+    else
+        ok "Options Btrfs déjà correctes (noatime, compression, COW)"
+    fi
 
     run sudo systemctl enable --now fstrim.timer
     run sudo systemctl enable --now "btrfs-scrub@$(systemd-escape -p /).timer"
