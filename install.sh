@@ -5,7 +5,7 @@
 #   base      pacman.conf, multilib, mise à jour, assistant AUR
 #   system    Btrfs + snapshots, maintenance, énergie, nom d'hôte
 #   security  SSH, pare-feu, fail2ban, auditd, AppArmor, sysctl
-#   shell     zsh + oh-my-zsh + powerlevel10k + kitty
+#   shell     zsh + oh-my-zsh (le prompt starship et kitty viennent de Lucid)
 #   apps      Firefox, Steam, Blender, Obsidian, VS Code, Proton, OnlyOffice...
 #   desktop   Hyprland + shell Lucid + SDDM
 #   hardware  microcode, pilote NVIDIA (open) et réglages Hyprland/boot associés
