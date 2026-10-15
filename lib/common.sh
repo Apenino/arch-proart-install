@@ -109,7 +109,16 @@ aur_install() {
     local p todo=()
     for p in "$@"; do pkg_installed "$p" || todo+=("$p"); done
     if ((${#todo[@]})); then
-        run "$AUR" -S --needed "${todo[@]}"
+        if [[ ${AUR_REVIEW:-yes} == no ]]; then
+            warn "AUR_REVIEW=no : ${todo[*]} installé(s) SANS relecture du PKGBUILD"
+            if [[ $AUR == paru ]]; then
+                run "$AUR" -S --needed --noconfirm --skipreview "${todo[@]}"
+            else
+                run "$AUR" -S --needed --noconfirm --answerdiff None --answeredit None --answerclean None "${todo[@]}"
+            fi
+        else
+            run "$AUR" -S --needed "${todo[@]}"
+        fi
     else
         ok "Déjà installés : $*"
     fi
