@@ -152,7 +152,11 @@ write_root_file() {
     elif dry; then
         printf '\e[2m  [dry-run] écrirait %s\e[0m\n' "$dest"
     else
-        if sudo test -f "$dest"; then sudo cp -a "$dest" "$dest.bak.$(date +%Y%m%d%H%M%S)"; fi
+        # Sauvegarde HORS du dossier d'origine : certains dossiers sont lus en entier par leur service
+        # (/etc/apparmor.d charge chaque fichier, un « .bak » portant le même nom de profil écrase le bon).
+        if sudo test -f "$dest"; then
+            sudo install -D -m 600 -o root -g root "$dest" "/var/backups/arch-proart-install$dest.$(date +%Y%m%d%H%M%S)"
+        fi
         sudo install -D -m "$mode" -o root -g root "$tmp" "$dest"
         ok "Écrit : $dest"
     fi

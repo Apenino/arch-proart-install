@@ -286,4 +286,13 @@ connexions SSH réussissaient. Journal : `ssh_systemd_notify: socket "/run/syste
 - **Piège de diagnostic** : `ausearch` lit son entrée standard quand elle est un tube ; lancé depuis `ssh … bash -s`,
   il a avalé la suite du script. Toujours `ausearch --input-logs` (ou `< /dev/null`) dans un script distant.
 - Le noyau Arch de la machine de référence n'avait pas ce comportement : le profil y fonctionnait sans ce drapeau.
+- **Seconde cause, découverte au redémarrage suivant** : le correctif marchait à chaud mais `sshd` retombait en
+  `activating` au démarrage. Le script sauvegardait chaque fichier réécrit **à côté de l'original**
+  (`usr.bin.sshd.bak.<date>`), or `/etc/apparmor.d/` est lu **en entier** par `apparmor.service` : quatre anciennes
+  versions du profil, toutes nommées `sshd`, étaient chargées à leur tour et l'une d'elles (ancienne, en `complain`,
+  sans le bon réglage) écrasait la bonne. Le processus affichait `sshd (complain)` alors que le fichier réel était en
+  `enforce`, indice décisif. **Correctif** : les sauvegardes vont dans `/var/backups/arch-proart-install/`,
+  jamais dans un dossier que le service parcourt.
+- **Leçon de méthode** : un correctif « qui marche à chaud » doit être revalidé **à froid** (redémarrage), et un
+  profil AppArmor chargé doit se comparer au fichier voulu (`/sys/kernel/security/apparmor/profiles`).
 
