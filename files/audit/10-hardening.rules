@@ -1,0 +1,23 @@
+-D
+-b 8192
+-f 1
+# identity & auth
+-w /etc/passwd -p wa -k identity
+-w /etc/shadow -p wa -k identity
+-w /etc/group -p wa -k identity
+-w /etc/gshadow -p wa -k identity
+-w /etc/sudoers -p wa -k sudoers
+-w /etc/sudoers.d/ -p wa -k sudoers
+# ssh & firewall config
+-w /etc/ssh/sshd_config -p wa -k sshd
+-w /etc/ssh/sshd_config.d/ -p wa -k sshd
+-w /etc/ufw/ -p wa -k firewall
+# persistence points
+-w /etc/systemd/system/ -p wa -k systemd
+-w /etc/pam.d/ -p wa -k pam
+-w /etc/crontab -p wa -k cron
+-w /var/spool/cron/ -p wa -k cron
+# privilege use & module loading
+-a always,exit -F arch=b64 -S execve -C uid!=euid -F euid=0 -k setuid-exec
+-a always,exit -F arch=b64 -S init_module,finit_module,delete_module -k modules
+-w /var/log/lastlog -p wa -k logins

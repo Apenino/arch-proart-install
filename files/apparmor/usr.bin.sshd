@@ -1,0 +1,92 @@
+# AppArmor profile for OpenSSH server (Arch layout: sshd + sshd-auth + sshd-session)
+# Daemon and privileged helpers are confined; the user's shell and commands run
+# unconfined (Ux) so interactive sessions are not restricted.
+abi <abi/4.0>,
+include <tunables/global>
+
+profile sshd /usr/bin/sshd @FLAGS@{
+  include <abstractions/base>
+  include <abstractions/nameservice>
+  include <abstractions/authentication>
+  include <abstractions/consoles>
+  include <abstractions/libpam-systemd>
+
+  capability audit_write,
+  capability chown,
+  capability dac_override,
+  capability dac_read_search,
+  capability fowner,
+  capability fsetid,
+  capability kill,
+  capability net_admin,   # socket buffer tuning (sd_notify / sshd-session)
+  capability net_bind_service,
+  capability setgid,
+  capability setuid,
+  capability sys_chroot,
+  capability sys_resource,
+  capability sys_tty_config,
+
+  network inet stream,
+  network inet6 stream,
+  network unix stream,
+  network netlink raw,
+
+  signal (send,receive) peer=sshd,
+  signal (send,receive) peer=unconfined,
+
+  /usr/bin/sshd                  mr,
+  /usr/lib/ssh/sshd-session      ix,
+  /usr/lib/ssh/sshd-auth         ix,
+  /usr/lib/ssh/sftp-server       Ux,
+  /usr/lib/ssh/ssh-keysign       Ux,
+
+  # user login shell and commands (post-authentication) are not confined
+  /{usr/,}bin/{,ba,z,da,a}sh     Ux,
+  /usr/bin/zsh                   Ux,
+  /usr/bin/**                    Ux,
+
+  /etc/ssh/                      r,
+  /etc/ssh/**                    r,
+  /etc/ssh/ssh_host_*_key        r,
+  /etc/shells                    r,
+  /etc/environment               r,
+  /etc/security/**               r,
+  /etc/motd                      r,
+  /etc/issue{,.net}              r,
+  /etc/login.defs                r,
+  /etc/locale.conf               r,
+  /etc/hosts.{allow,deny}        r,
+
+  /proc/sys/kernel/ngroups_max   r,
+  /proc/sys/crypto/fips_enabled  r,
+  /proc/@{pid}/{fd/,oom_score_adj,loginuid,sessionid,limits,status,stat,cmdline} rw,
+  /sys/devices/system/cpu/online r,
+
+  /run/sshd/                     rw,
+  /run/sshd/**                   rwk,
+  /run/sshd.pid                  rw,
+  /run/utmp                      rwk,
+  /run/systemd/notify            w,
+  /run/systemd/userdb/           r,
+  /run/systemd/userdb/**         rw,
+  /run/user/*/                   r,
+  /run/user/*/bus                rw,
+  /run/dbus/system_bus_socket    rw,
+  /var/log/{w,b}tmp              rwk,
+  /var/log/lastlog               rwk,
+  /var/empty/sshd/               r,
+  /var/lib/lastlog/              rw,
+  /var/lib/lastlog/**            rwk,
+  /etc/machine-id                r,
+  @{PROC}/@{pid}/{uid_map,gid_map,setgroups} r,
+
+  owner /home/*/.ssh/                  r,
+  owner /home/*/.ssh/authorized_keys{,2} r,
+  /root/.ssh/authorized_keys           r,
+
+  /dev/ptmx                      rw,
+  /dev/pts/*                     rw,
+  /dev/tty                       rw,
+  /dev/null                      rw,
+  /dev/urandom                   r,
+}
