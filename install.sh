@@ -54,7 +54,7 @@ fi
 # --------------------------------------------------------------------------
 HOSTNAME_NEW="" LAN_CIDR="" SSH_GITHUB_USER="" SSH_DISABLE_PASSWORD="no" FAIL2BAN_IGNORE=""
 EXTRA_PACKAGES="" AUR_REVIEW="yes" APPARMOR_MODE="complain" BOOT_SPLASH="yes" PLYMOUTH_THEME="arch-logo" BOOT_HIDE_MENU="yes" PRUNE="yes" KB_LAYOUT=""
-LUCID_REF="v1.20.1" LUCID_COMMIT="2601b9abbc81d6952bffb47101c4b3b45d6eb8d9"
+LUCID_REF="3d6ed3b84edf7c31d24117eb58ed86cb357113c5" LUCID_COMMIT="3d6ed3b84edf7c31d24117eb58ed86cb357113c5"
 if [[ -f $REPO_DIR/config.env ]]; then
     # shellcheck source=/dev/null
     source "$REPO_DIR/config.env"

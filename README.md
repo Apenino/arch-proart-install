@@ -72,8 +72,9 @@ adresse personnelle n'est dans le dépôt**.
 - **Applications AUR** (Proton Mail...) : ton assistant AUR te montre le `PKGBUILD` pour relecture avant
   de compiler. Celui de `proton-mail-bin` 1.15.1 télécharge le `.deb` depuis `proton.me` avec sommes de
   contrôle et n'a pas de script d'installation.
-- **Lucid** est cloné à la version `v1.20.1` et le commit (`2601b9a…`) est vérifié avant de lancer son
-  installeur. Pour monter de version, change `LUCID_REF` et `LUCID_COMMIT` après avoir relu les changements.
+- **Lucid** est cloné sur un **commit précis** (`3d6ed3b…`, version 1.20.1 + un correctif relu), vérifié avant de
+  lancer son installeur. On épingle le hash et non le tag, car l'auteur peut déplacer un tag. Pour monter de version,
+  relis le diff puis change `LUCID_REF` et `LUCID_COMMIT`.
 
 ## État des tests
 

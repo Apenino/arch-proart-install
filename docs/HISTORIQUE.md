@@ -223,7 +223,7 @@ Commandes utiles : `sudo snapper -c root create -d "avant X" -c important` (snap
 2. Passer `APPARMOR_MODE` à `enforce` après un test SSH.
 3. Ajouter un module de sauvegarde externe.
 4. Mettre à jour Lucid : changer `LUCID_REF` et `LUCID_COMMIT` après relecture des changements
-   (version actuelle `v1.20.1`, commit `2601b9abbc81d6952bffb47101c4b3b45d6eb8d9`).
+   (commit actuel `3d6ed3b84edf7c31d24117eb58ed86cb357113c5`).
 
 ## 10. Machine cible et module `hardware`
 
@@ -261,4 +261,12 @@ Autres observations : la RAM tourne bien à **6000 MT/s** (2 × 32 Go), Secure B
 systemd n'est en échec (les unités TPM de la machine de référence ne posent pas de problème ici), Btrfs a déjà
 `noatime` et `compress=zstd:1`, l'ESP fait 2 Go. `snapper`, `paru`, `fail2ban` et `apparmor` ne sont pas
 installés : c'est le travail du script.
+
+## 12. Premier lancement réel sur la machine cible
+
+- Le script s'est arrêté de lui-même au module `desktop` : **le tag `v1.20.1` de Lucid avait été déplacé** par son
+  auteur (quelques minutes après l'épinglage, un correctif de capture d'écran avait été ajouté au même numéro de
+  version). La vérification du commit a empêché d'exécuter du code non relu. Le diff (un commit, quatre fichiers,
+  aucun changement d'installeur ni appel réseau) a été relu puis accepté.
+- Leçon : l'épinglage se fait maintenant **sur le hash du commit** (`LUCID_REF` = `LUCID_COMMIT`), jamais sur un tag.
 
