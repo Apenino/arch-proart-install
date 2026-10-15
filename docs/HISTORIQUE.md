@@ -270,3 +270,20 @@ installés : c'est le travail du script.
   aucun changement d'installeur ni appel réseau) a été relu puis accepté.
 - Leçon : l'épinglage se fait maintenant **sur le hash du commit** (`LUCID_REF` = `LUCID_COMMIT`), jamais sur un tag.
 
+## 13. Premier redémarrage de la machine cible : sshd bloqué en « activating »
+
+Après le redémarrage, `sshd` restait en `activating (start)` puis était tué et relancé en boucle, alors que les
+connexions SSH réussissaient. Journal : `ssh_systemd_notify: socket "/run/systemd/notify" write: Permission denied`.
+
+- **Cause** : le profil AppArmor de `sshd`. Le journal d'audit brut indiquait
+  `info="Failed name lookup - disconnected path" error=-13 name="systemd/notify"` : le noyau CachyOS ne reconstitue pas
+  le chemin du socket `sd_notify` de systemd (chemin « déconnecté »). C'est une **erreur de résolution de chemin, pas un
+  refus de règle** : le mode *complain* ne la contourne donc pas, et `ausearch -m AVC | grep sshd` ne montrait rien
+  d'utile (le filtre était trop étroit ; l'événement existe bien dans `/var/log/audit/audit.log`).
+- **Bissection** : décharger le profil (`apparmor_parser -R`) + `systemctl restart sshd` → `active` aussitôt.
+- **Fausse piste** : des règles `unix dgram` (hypothèse plausible) n'ont rien changé ; elles ont été retirées.
+- **Correctif** : drapeau `attach_disconnected` + règle `/systemd/notify w,`. `sshd` passe `active`, 0 redémarrage.
+- **Piège de diagnostic** : `ausearch` lit son entrée standard quand elle est un tube ; lancé depuis `ssh … bash -s`,
+  il a avalé la suite du script. Toujours `ausearch --input-logs` (ou `< /dev/null`) dans un script distant.
+- Le noyau Arch de la machine de référence n'avait pas ce comportement : le profil y fonctionnait sans ce drapeau.
+

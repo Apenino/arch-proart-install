@@ -120,8 +120,9 @@ _apparmor() {
     cmdline_add "lsm=landlock,lockdown,yama,integrity,apparmor,bpf"
     run sudo systemctl enable apparmor.service
 
-    local flags=""
-    [[ ${APPARMOR_MODE:-complain} == complain ]] && flags="flags=(complain) "
+    # attach_disconnected : requis pour le socket sd_notify de systemd sur certains noyaux (voir le profil)
+    local flags="flags=(attach_disconnected) "
+    [[ ${APPARMOR_MODE:-complain} == complain ]] && flags="flags=(attach_disconnected,complain) "
     sed "s|@FLAGS@|$flags|" "$FILES/apparmor/usr.bin.sshd" \
         | write_root_file /etc/apparmor.d/usr.bin.sshd 644
 

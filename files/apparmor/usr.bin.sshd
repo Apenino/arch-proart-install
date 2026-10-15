@@ -29,10 +29,6 @@ profile sshd /usr/bin/sshd @FLAGS@{
   network inet stream,
   network inet6 stream,
   network unix stream,
-  # sd_notify (READY=1) : socket datagramme vers systemd. Sans ces règles, certains noyaux (CachyOS)
-  # refusent l'envoi et systemd croit que sshd ne démarre jamais.
-  network unix dgram,
-  unix (create, connect, send, receive, getattr, setopt, shutdown) type=dgram,
   network netlink raw,
 
   signal (send,receive) peer=sshd,
@@ -70,7 +66,10 @@ profile sshd /usr/bin/sshd @FLAGS@{
   /run/sshd/**                   rwk,
   /run/sshd.pid                  rw,
   /run/utmp                      rwk,
+  # sd_notify : le noyau CachyOS voit ce socket comme un chemin « déconnecté » (/systemd/notify) ;
+  # sans attach_disconnected + cette règle, sshd ne peut pas signaler READY=1 à systemd
   /run/systemd/notify            w,
+  /systemd/notify                w,
   /run/systemd/userdb/           r,
   /run/systemd/userdb/**         rw,
   /run/user/*/                   r,
