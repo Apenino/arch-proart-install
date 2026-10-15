@@ -4,14 +4,22 @@
 # shellcheck shell=bash
 
 _plymouth_theme() {
+    local want=${PLYMOUTH_THEME:-arch-logo}
+    if [[ $want == keep ]]; then
+        ok "PLYMOUTH_THEME=keep : thème actuel conservé ($(plymouth-set-default-theme 2>/dev/null || echo inconnu))"
+        return 0
+    fi
     local f t=/usr/share/plymouth/themes/arch-logo
     for f in arch-logo.plymouth arch-logo.script logo.png; do
         copy_root_file "$FILES/plymouth/arch-logo/$f" "$t/$f"
     done
-    if dry || [[ "$(plymouth-set-default-theme 2>/dev/null)" == arch-logo ]]; then
-        dry && printf '\e[2m  [dry-run] plymouth-set-default-theme arch-logo\e[0m\n'
+    if [[ "$(plymouth-set-default-theme 2>/dev/null)" == arch-logo ]]; then
+        ok "Thème Plymouth déjà : arch-logo"
     else
-        sudo plymouth-set-default-theme arch-logo
+        run sudo plymouth-set-default-theme arch-logo
+        # le thème est copié dans l'initramfs à sa construction : il faut la refaire
+        # shellcheck disable=SC2034
+        BOOT_REBUILD=1
     fi
 }
 

@@ -78,9 +78,9 @@ adresse personnelle n'est dans le dépôt**.
 ## État des tests
 
 Testé sur **Arch Linux + systemd-boot (images UKI) + Btrfs**, sur un portable Intel (Dell). Le module `hardware` (NVIDIA) est vérifié par tests unitaires et simulation de GPU, **pas sur la vraie carte**. Les modules ont été
-validés en `--dry-run` (idempotence) et à la main. **Pas encore testé sur une installation CachyOS
-fraîche** (autre bootloader possible, autres valeurs par défaut) : lance d'abord `./install.sh --dry-run`
-et relis ce qui est affiché.
+validés en `--dry-run` (idempotence) et à la main. Une installation CachyOS a été **inspectée en lecture seule** (bootloader `sdboot-manage`, Plymouth, NVIDIA, Btrfs) et
+le script corrigé en conséquence (voir `docs/HISTORIQUE.md`, §11), mais **il n'a pas encore été exécuté de bout
+en bout dessus** : lance d'abord `./install.sh --dry-run` et relis ce qui est affiché.
 
 ## Historique et décisions
 

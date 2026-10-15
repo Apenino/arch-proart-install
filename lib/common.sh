@@ -156,8 +156,10 @@ copy_root_file() { write_root_file "$2" "${3:-644}" <"$1"; }
 # --------------------------------------------------------------------------
 # Ligne de commande du noyau (selon le bootloader)
 # --------------------------------------------------------------------------
-BOOT_REBUILD=0   # 1 si les images (UKI/initramfs) doivent être régénérées
+BOOT_REBUILD=0     # 1 si les images (UKI/initramfs) doivent être régénérées
 BOOT_REGEN_GRUB=0
+BOOT_SDBOOT_GEN=0  # 1 si les entrées systemd-boot doivent être régénérées (sdboot-manage)
+SDBOOT_CONF="${SDBOOT_CONF:-/etc/sdboot-manage.conf}"
 
 _cmdline_has() { grep -qE "(^|[ \"])$2(=|[ \"]|$)" <<<"$1"; }
 
@@ -167,7 +169,28 @@ cmdline_add() {
     bl="$(detect_bootloader)"
     case $bl in
         systemd-boot)
-            if [[ -f /etc/kernel/cmdline ]]; then
+            if command -v sdboot-manage >/dev/null 2>&1 && [[ -f $SDBOOT_CONF ]]; then
+                # CachyOS : les entrées sont générées par sdboot-manage à partir de LINUX_OPTIONS
+                current="$(sed -nE 's/^LINUX_OPTIONS="(.*)"/\1/p' "$SDBOOT_CONF")"
+                local new="$current"
+                for param in $1; do
+                    key="${param%%=*}"
+                    if _cmdline_has "$new" "$key"; then
+                        ok "Paramètre déjà présent : $key"
+                    else
+                        new="$new $param"
+                    fi
+                done
+                if [[ "$new" != "$current" ]]; then
+                    run sudo cp -a "$SDBOOT_CONF" "$SDBOOT_CONF.bak.$(date +%Y%m%d%H%M%S)"
+                    if grep -qE '^LINUX_OPTIONS=' "$SDBOOT_CONF"; then
+                        run sudo sed -i -E "s|^LINUX_OPTIONS=.*|LINUX_OPTIONS=\"${new# }\"|" "$SDBOOT_CONF"
+                    else
+                        dry || printf 'LINUX_OPTIONS="%s"\n' "${new# }" | sudo tee -a "$SDBOOT_CONF" >/dev/null
+                    fi
+                    BOOT_SDBOOT_GEN=1
+                fi
+            elif [[ -f /etc/kernel/cmdline ]]; then
                 current="$(cat /etc/kernel/cmdline)"
                 for param in $1; do
                     key="${param%%=*}"
@@ -231,6 +254,10 @@ boot_apply() {
         else
             warn "Régénère manuellement tes images de démarrage (dracut, etc.)."
         fi
+    fi
+    if ((BOOT_SDBOOT_GEN)); then
+        info "Régénération des entrées systemd-boot (sdboot-manage gen)"
+        run sudo sdboot-manage gen
     fi
     if ((BOOT_REGEN_GRUB)); then
         info "Régénération de la config GRUB"

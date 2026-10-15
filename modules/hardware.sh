@@ -29,12 +29,26 @@ _nvidia_kernel_pkg() {
     fi
 }
 
-# mkinitcpio_add_modules FICHIER mod... : ajoute les modules manquants à MODULES=(...).
+# Module déjà déclaré dans MODULES=(...) ou MODULES+=(...), dans la config principale ou ses fragments ?
+_mkinit_module_declared() {
+    local files f
+    if [[ -n ${MKINIT_CONF_FILES:-} ]]; then
+        read -ra files <<<"$MKINIT_CONF_FILES"
+    else
+        files=(/etc/mkinitcpio.conf /etc/mkinitcpio.conf.d/*.conf)
+    fi
+    for f in "${files[@]}"; do
+        [[ -f $f ]] && grep -E '^\s*MODULES\+?=' "$f" | grep -qw "$1" && return 0
+    done
+    return 1
+}
+
+# mkinitcpio_add_modules FICHIER mod... : ajoute à MODULES=(...) les modules qu'aucune config ne déclare déjà.
 mkinitcpio_add_modules() {
     local conf=$1; shift
     local m missing=()
     for m in "$@"; do
-        grep -E '^\s*MODULES=' "$conf" | grep -qw "$m" || missing+=("$m")
+        _mkinit_module_declared "$m" || missing+=("$m")
     done
     ((${#missing[@]})) || { ok "Modules déjà chargés tôt : $*"; return 0; }
     run sudo cp -a "$conf" "$conf.bak.$(date +%Y%m%d%H%M%S)"
@@ -46,12 +60,8 @@ mkinitcpio_add_modules() {
 
 _nvidia_early_kms() {
     command -v mkinitcpio >/dev/null 2>&1 || { warn "mkinitcpio absent : ajoute $NVIDIA_EARLY_MODULES à l'initramfs à la main."; return 0; }
-    local conf=/etc/mkinitcpio.conf f
-    for f in /etc/mkinitcpio.conf.d/*.conf; do
-        [[ -f $f ]] && grep -qE '^\s*MODULES=' "$f" && conf="$f"
-    done
     # shellcheck disable=SC2086
-    mkinitcpio_add_modules "$conf" $NVIDIA_EARLY_MODULES
+    mkinitcpio_add_modules /etc/mkinitcpio.conf $NVIDIA_EARLY_MODULES
 }
 
 # Variables d'environnement Hyprland pour NVIDIA, dans un module Lua chargé par hyprland.lua.

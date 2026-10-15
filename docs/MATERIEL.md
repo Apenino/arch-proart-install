@@ -12,7 +12,7 @@ Ne contient volontairement **ni numéro de série, ni adresse MAC, ni nom d'util
 | Processeur | AMD Ryzen 9 9950X3D, 16 cœurs / 32 threads (Zen 5, V-Cache 3D) |
 | Mémoire | 64 Go de RAM |
 | GPU | **NVIDIA GeForce RTX 5080** (architecture Blackwell), écran 4K à 59 Hz |
-| Stockage | NVMe **Crucial T710 2 To** (Windows : EFI 200 Mo + NTFS 1,82 To + récupération 906 Mo) ; 2 × SATA **SanDisk SSD Plus 500 Go** (un en exFAT, un en NTFS) |
+| Stockage | NVMe **Crucial T710 2 To** (Windows : EFI 200 Mo + NTFS 1,82 To + récupération 906 Mo) ; 2 × **SanDisk SSD Plus 500 Go** (vus comme NVMe par Linux) (un en exFAT, un en NTFS) |
 | Réseau | Intel Ethernet I226-V (2,5 GbE), Marvell AQtion 10 GbE, Qualcomm FastConnect 7800 Wi-Fi 7 (+ Bluetooth) |
 | Audio | Realtek HD Audio (carte mère) + audio HDMI NVIDIA |
 | USB | contrôleurs AMD (3.2 / 2.0), ASMedia (USB 3.2 et USB4) |
@@ -23,7 +23,7 @@ Ne contient volontairement **ni numéro de série, ni adresse MAC, ni nom d'util
 
 - **BIOS** : désactiver **Secure Boot** (ou le laisser en mode personnalisé si tu sais enrôler des clés), désactiver le
   Fast Boot, rester en mode UEFI.
-- **Disques** : installer sur le **NVMe de 2 To** et **ne pas sélectionner** les deux SATA de 500 Go s'ils contiennent
+- **Disques** : installer sur le **NVMe de 2 To** et **ne pas sélectionner** les deux SanDisk de 500 Go (`nvme1n1` et `nvme2n1`) s'ils contiennent
   des données (le plus sûr : les débrancher pendant l'installation). Les partitions NTFS/exFAT se montent ensuite sans souci.
 - **Pilote NVIDIA** : choisir la variante **open** dans l'installeur de la distribution. Les cartes RTX 50 (Blackwell)
   ne fonctionnent **qu'avec les modules open**. Le module `hardware` du script le vérifie et complète (paquets, paramètres

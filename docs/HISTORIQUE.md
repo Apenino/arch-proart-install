@@ -240,3 +240,25 @@ avec une RTX 5080**, très différent d'un portable Intel. Changements :
   compatibles avec les modules open : corrigé après test.
 
 Non testé sur la vraie carte : les noms de paquets ont été vérifiés dans les dépôts, la logique par simulation.
+
+## 11. Premier contact avec une vraie installation CachyOS (lecture seule, via SSH)
+
+L'installation CachyOS de la machine cible a été inspectée avant de lancer le script. Constat et corrections :
+
+| Constat sur CachyOS | Conséquence | Correction |
+|---|---|---|
+| Les entrées systemd-boot sont générées par **`sdboot-manage`** à partir de `LINUX_OPTIONS` (`/etc/sdboot-manage.conf`) ; `/etc/kernel/cmdline` existe mais n'alimente pas les entrées | les paramètres noyau (`lsm=…apparmor`, `nvidia-drm…`) n'auraient jamais été pris en compte | `cmdline_add` édite `LINUX_OPTIONS`, puis `sdboot-manage gen` est lancé en fin de script |
+| Démarrage par **initramfs séparé** (`initrd=\initramfs-linux-cachyos.img`), pas d'image UKI | la logique « UKI » de Maverick ne s'applique pas | gérée par le même mécanisme (`mkinitcpio -P` si nécessaire) |
+| **Plymouth déjà installé** (hook en place, thème CachyOS), `quiet splash` déjà présents | changer de thème sans reconstruire l'initramfs ne changerait rien au démarrage | `BOOT_REBUILD=1` quand le thème change ; option `PLYMOUTH_THEME` (`arch-logo` ou `keep`) |
+| Modules NVIDIA déjà chargés tôt via `/etc/mkinitcpio.conf.d/10-chwd.conf` avec **`MODULES+=(`** | la détection `MODULES=` les ratait et ajoutait des doublons | détection sur toute la config (`=` et `+=`, fragments compris) |
+| Pilote **NVIDIA open** déjà installé par l'installeur (`linux-cachyos-nvidia-open`) | le module `hardware` ne l'installe pas une seconde fois | détection d'un pilote existant (déjà prévue) |
+| Dépôts `cachyos-znver4` (Zen 5), noyaux `linux-cachyos` et `linux-cachyos-lts` | `paru` s'installe depuis le dépôt CachyOS | rien à changer |
+| Shell de connexion **fish** | les commandes distantes passent par fish ; le script bascule ensuite sur zsh | les scripts utilisent bash (`#!/usr/bin/env bash`) |
+| `blkid` sans droits root renvoie un résultat vide | l'UUID des lignes `fstab` de snapper aurait été vide | `findmnt -no UUID /` |
+| Les deux SanDisk sont vus comme **NVMe** (pas SATA) | erreur dans la fiche matérielle | `docs/MATERIEL.md` corrigé |
+
+Autres observations : la RAM tourne bien à **6000 MT/s** (2 × 32 Go), Secure Boot est désactivé, aucune unité
+systemd n'est en échec (les unités TPM de la machine de référence ne posent pas de problème ici), Btrfs a déjà
+`noatime` et `compress=zstd:1`, l'ESP fait 2 Go. `snapper`, `paru`, `fail2ban` et `apparmor` ne sont pas
+installés : c'est le travail du script.
+

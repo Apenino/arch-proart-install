@@ -34,7 +34,7 @@ _snapper() {
 
     local src dev uuid
     src="$(findmnt -no SOURCE /)"; dev="${src%%[*}"
-    uuid="$(blkid -s UUID -o value "$dev")"
+    uuid="$(findmnt -no UUID /)"
 
     local cfg mp snapname
     for cfg in root:/ home:/home; do
