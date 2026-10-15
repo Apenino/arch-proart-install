@@ -104,7 +104,13 @@ _audit() {
     pac_install audit
     copy_root_file "$FILES/audit/10-hardening.rules" /etc/audit/rules.d/10-hardening.rules 640
     run sudo systemctl enable --now auditd.service
-    run sudo augenrules --load
+    # Le démarrage d'auditd charge déjà les règles (audit-rules.service) : un second chargement lancé en même
+    # temps fait planter auditctl. On attend, puis on ne recharge que si les règles ne sont pas là.
+    if ! dry; then
+        sleep 3
+        sudo auditctl -l 2>/dev/null | grep -q -- '-k identity' || sudo augenrules --load
+        sudo systemctl reset-failed audit-rules.service 2>/dev/null || true
+    fi
 }
 
 # --- AppArmor ----------------------------------------------------------------
