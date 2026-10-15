@@ -105,6 +105,7 @@ une installation fraîche, le chiffrement LUKS. Lance toujours `./install.sh --d
 | `sshd` en `activating`, relancé en boucle après un redémarrage | profil AppArmor sans `attach_disconnected`, ou anciennes sauvegardes dans `/etc/apparmor.d/` | HISTORIQUE §13 |
 | Le script s'arrête sur « Commit Lucid inattendu » | l'auteur a déplacé un tag : relire le diff puis changer `LUCID_REF`/`LUCID_COMMIT` | HISTORIQUE §12 |
 | Paramètres noyau sans effet sous CachyOS | les entrées viennent de `sdboot-manage` (`LINUX_OPTIONS`), pas de `/etc/kernel/cmdline` | HISTORIQUE §11 |
+| Quickshell plante à l'ouverture d'une application | bogue connu d'icônes asynchrones (Qt 6.12 + Quickshell 0.3.2) | HISTORIQUE §17 |
 | Les écrans sont inversés dans Lucid | placement « auto » par ordre de connecteur | HISTORIQUE §14 |
 
 ## Historique et décisions

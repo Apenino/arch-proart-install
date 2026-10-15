@@ -350,3 +350,32 @@ leçons de méthode :
 le même disque), chiffrement du disque et Secure Boot (`sbctl`), profils AppArmor pour d'autres services, mise en
 conformité de la machine de référence avec les deux correctifs du profil `sshd`.
 
+## 17. Crash de Quickshell à l'ouverture d'une application (bogue connu en amont)
+
+À l'ouverture de Discord depuis le lanceur, le shell de Lucid a planté (`SIGABRT`) puis a été relancé par le
+gestionnaire de crash de Quickshell. Analyse (coredump, rapport de Quickshell, trace `strace`) :
+
+- **Cause immédiate** : appel de fonction purement virtuelle dans `QPlatformPixmap::fromFile`, appelé par `QIcon::pixmap`
+  depuis le fil de chargement d'images de Qt (`QQuickPixmapReader`).
+- **Cause profonde** : le fournisseur d'icônes de Quickshell appelle `QIcon::pixmap()` hors du fil principal quand un
+  `Image` QML est en `asynchronous: true` ; `QPlatformPixmap` n'est pas prévu pour cela. **Bogue déjà signalé en amont**
+  (quickshell-mirror/quickshell : #1028, #979, #974 fermée comme « upstream », #1079 variante dans le fil principal).
+- **Déclencheur dans Lucid** : `lucidbar/ActiveWindow.qml` charge l'icône de la fenêtre active en `asynchronous: true`.
+  Intermittent : le second lancement de Discord, sous trace, n'a rien produit. Qt 6.12.0 + Quickshell 0.3.2.
+- **Effet secondaire** : après la relance, les processus enfants de l'ancienne instance (`pactl subscribe`,
+  `nmcli monitor`, `wl-paste --watch cliphist store`...) restent en doublon à côté des nouveaux. Ils se terminent par
+  `kill` mais n'étant pas « récoltés » par leur parent ils restent zombies jusqu'à la prochaine session.
+- **Contournement local, non testé** : `asynchronous: false` dans `ActiveWindow.qml` (à refaire après chaque
+  réinstallation de Lucid). Les brouillons de rapports (commentaire sur la fiche existante, fiche « enfants orphelins »,
+  fiche pour l'auteur de Lucid) ont été rédigés mais pas publiés.
+
+**Pièges d'interprétation à ne pas refaire** (une conclusion fausse a été tirée puis corrigée) :
+
+1. Après un crash, Quickshell se relance **sur place** : **même PID, même date de démarrage dans `ps`**. « Le PID n'a pas
+   changé » ne prouve donc pas que le shell n'a pas planté. Les dates de création des fils (`/proc/<pid>/task/*/stat`) et
+   des processus enfants, elles, le montrent.
+2. Dans un coredump, le « PID parent » (`pr_ppid`) est l'identifiant du **fil** qui a créé le processus, pas du processus.
+   Le « processus planté » n'est ici qu'un instantané à un seul fil, créé par le gestionnaire de crash.
+3. `ausearch` lit son entrée standard quand elle est un tube (voir §13) ; `pacman -Rns` refuse `--print` (simulation :
+   `pacman -Rs --print`, sans `-n`).
+
