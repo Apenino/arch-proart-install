@@ -1,145 +1,95 @@
 #!/usr/bin/env bash
-# Script post-installation Arch Linux (ASUS ProArt)
-# - Logiciels de base : firefox, onlyoffice, steam, blender, git, discord, vlc
-# - Shell : kitty + zsh + oh-my-zsh + powerlevel10k (+ traînée du curseur)
+# Script post-installation Arch Linux / CachyOS (ASUS ProArt)
 #
-# Usage : ./install.sh   (en utilisateur normal, sudo sera demandé)
+# Modules, dans l'ordre d'exécution :
+#   base      pacman.conf, multilib, mise à jour, assistant AUR
+#   system    Btrfs + snapshots, maintenance, énergie, nom d'hôte
+#   security  SSH, pare-feu, fail2ban, auditd, AppArmor, sysctl
+#   shell     zsh + oh-my-zsh + powerlevel10k + kitty
+#   apps      Firefox, Steam, Blender, Obsidian, VS Code, Proton, OnlyOffice...
+#   desktop   Hyprland + shell Lucid + SDDM
+#   boot      démarrage silencieux avec logo (Plymouth)
+#
+# Usage : ./install.sh [--dry-run] [--only a,b] [--skip a,b] [--list] [-h]
+# À lancer en utilisateur normal (pas en root) : sudo est demandé quand c'est nécessaire.
 
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTFILES="$REPO_DIR/dotfiles"
-ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+export REPO_DIR
+export DOTFILES="$REPO_DIR/dotfiles"
+export FILES="$REPO_DIR/files"
 
-info() { printf '\e[1;34m==>\e[0m %s\n' "$*"; }
-ok()   { printf '\e[1;32m  ✓\e[0m %s\n' "$*"; }
-warn() { printf '\e[1;33m  !\e[0m %s\n' "$*"; }
+# shellcheck source=lib/common.sh
+source "$REPO_DIR/lib/common.sh"
+
+ALL_MODULES=(base system security shell apps desktop boot)
+ONLY=""
+SKIP=""
+DRY_RUN=0
+
+usage() { sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0; }
+
+while (($#)); do
+    case $1 in
+        --dry-run) DRY_RUN=1 ;;
+        --only)    ONLY="${2:?--only demande une liste}"; shift ;;
+        --skip)    SKIP="${2:?--skip demande une liste}"; shift ;;
+        --list)    printf '%s\n' "${ALL_MODULES[@]}"; exit 0 ;;
+        -h|--help) usage ;;
+        *) die "Option inconnue : $1 (voir --help)" ;;
+    esac
+    shift
+done
+export DRY_RUN
 
 if [[ $EUID -eq 0 ]]; then
-    echo "Lance ce script en utilisateur normal (pas en root), sudo sera utilisé au besoin." >&2
-    exit 1
+    die "Lance ce script en utilisateur normal (pas en root), sudo sera utilisé au besoin."
 fi
+[[ -f /etc/arch-release ]] || die "Ce script est prévu pour Arch Linux ou une base Arch (CachyOS...)."
 
+# --------------------------------------------------------------------------
+# Configuration (config.env, voir config.env.example) — jamais commitée
+# --------------------------------------------------------------------------
+HOSTNAME_NEW="" LAN_CIDR="" SSH_GITHUB_USER="" SSH_DISABLE_PASSWORD="no" FAIL2BAN_IGNORE=""
+APPARMOR_MODE="complain" BOOT_SPLASH="yes" BOOT_HIDE_MENU="yes" PRUNE="yes" KB_LAYOUT=""
+LUCID_REF="v1.20.1" LUCID_COMMIT="2601b9abbc81d6952bffb47101c4b3b45d6eb8d9"
+if [[ -f $REPO_DIR/config.env ]]; then
+    # shellcheck source=/dev/null
+    source "$REPO_DIR/config.env"
+    info "Configuration chargée : config.env"
+fi
+export HOSTNAME_NEW LAN_CIDR SSH_GITHUB_USER SSH_DISABLE_PASSWORD FAIL2BAN_IGNORE
+export APPARMOR_MODE BOOT_SPLASH BOOT_HIDE_MENU PRUNE KB_LAYOUT LUCID_REF LUCID_COMMIT
+
+in_list() { [[ ",$2," == *",$1,"* ]]; }
+
+selected=()
+for m in "${ALL_MODULES[@]}"; do
+    if [[ -n $ONLY ]] && ! in_list "$m" "$ONLY"; then continue; fi
+    if [[ -n $SKIP ]] && in_list "$m" "$SKIP"; then continue; fi
+    selected+=("$m")
+done
+((${#selected[@]})) || die "Aucun module sélectionné."
+
+dry && warn "MODE DRY-RUN : rien n'est modifié, les commandes sont seulement affichées."
 sudo -n true 2>/dev/null || sudo -v
 
-# --------------------------------------------------------------------------
-# Dépôt multilib (nécessaire pour Steam)
-# --------------------------------------------------------------------------
-enable_multilib() {
-    info "Activation du dépôt multilib"
-    if grep -q '^\[multilib\]' /etc/pacman.conf; then
-        ok "multilib déjà activé"
-    else
-        sudo sed -i '/^#\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf
-        ok "multilib activé"
-    fi
-}
+for m in "${selected[@]}"; do
+    # shellcheck source=/dev/null
+    source "$REPO_DIR/modules/$m.sh"
+    "module_$m"
+done
 
-# --------------------------------------------------------------------------
-# Pilotes Vulkan 32 bits selon le GPU (évite le choix interactif de Steam)
-# --------------------------------------------------------------------------
-vulkan_packages() {
-    local gpus pkgs=()
-    gpus="$(lspci | grep -E 'VGA compatible|3D controller|Display controller' || true)"
-    grep -qi intel  <<<"$gpus" && pkgs+=(vulkan-intel lib32-vulkan-intel)
-    grep -qiE '\b(amd|ati)\b' <<<"$gpus" && pkgs+=(vulkan-radeon lib32-vulkan-radeon)
-    grep -qi nvidia <<<"$gpus" && pkgs+=(nvidia-utils lib32-nvidia-utils)
-    (( ${#pkgs[@]} )) && printf '%s\n' "${pkgs[@]}"
-    return 0
-}
+boot_apply
 
-# --------------------------------------------------------------------------
-# Paquets officiels
-# --------------------------------------------------------------------------
-install_packages() {
-    info "Mise à jour du système et installation des paquets"
-    local pkgs=(
-        base-devel git curl
-        firefox steam blender discord vlc
-        kitty zsh ttf-jetbrains-mono-nerd
-    )
-    mapfile -t vk < <(vulkan_packages)
-    sudo pacman -Syu --needed --noconfirm "${pkgs[@]}" "${vk[@]}"
-    ok "Paquets installés"
-}
+info "Terminé !"
+cat <<EOF
 
-# --------------------------------------------------------------------------
-# yay (AUR) puis OnlyOffice
-# --------------------------------------------------------------------------
-install_yay() {
-    info "Installation de yay (AUR)"
-    if command -v yay >/dev/null; then
-        ok "yay déjà installé"
-        return
-    fi
-    local tmp
-    tmp="$(mktemp -d)"
-    git clone --depth=1 https://aur.archlinux.org/yay-bin.git "$tmp/yay-bin"
-    (cd "$tmp/yay-bin" && makepkg -si --noconfirm)
-    rm -rf "$tmp"
-    ok "yay installé"
-}
-
-install_onlyoffice() {
-    info "Installation d'OnlyOffice"
-    yay -S --needed --noconfirm onlyoffice-bin
-    ok "OnlyOffice installé"
-}
-
-# --------------------------------------------------------------------------
-# Shell : oh-my-zsh + powerlevel10k + plugins
-# --------------------------------------------------------------------------
-clone_or_update() {
-    local url=$1 dest=$2
-    if [[ -d $dest/.git ]]; then
-        git -C "$dest" pull --ff-only --quiet
-    else
-        git clone --depth=1 --quiet "$url" "$dest"
-    fi
-}
-
-backup() {
-    local f=$1
-    if [[ -e $f && ! -L $f ]]; then
-        cp "$f" "$f.bak.$(date +%Y%m%d%H%M%S)"
-        warn "Sauvegarde de $f"
-    fi
-}
-
-setup_shell() {
-    info "Configuration de zsh + oh-my-zsh + powerlevel10k"
-    if [[ ! -d $HOME/.oh-my-zsh ]]; then
-        RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c \
-            "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-    fi
-    clone_or_update https://github.com/romkatv/powerlevel10k.git            "$ZSH_CUSTOM/themes/powerlevel10k"
-    clone_or_update https://github.com/zsh-users/zsh-autosuggestions        "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
-    clone_or_update https://github.com/zsh-users/zsh-syntax-highlighting    "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
-
-    backup "$HOME/.zshrc"
-    backup "$HOME/.p10k.zsh"
-    install -m 644 "$DOTFILES/zsh/.zshrc"    "$HOME/.zshrc"
-    install -m 644 "$DOTFILES/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
-
-    if [[ "$(getent passwd "$USER" | cut -d: -f7)" != /usr/bin/zsh ]]; then
-        sudo chsh -s /usr/bin/zsh "$USER"
-    fi
-    ok "Shell configuré"
-}
-
-setup_kitty() {
-    info "Configuration de kitty"
-    mkdir -p "$HOME/.config/kitty"
-    backup "$HOME/.config/kitty/kitty.conf"
-    install -m 644 "$DOTFILES/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
-    ok "kitty configuré (zsh + traînée du curseur)"
-}
-
-enable_multilib
-install_packages
-install_yay
-install_onlyoffice
-setup_shell
-setup_kitty
-
-info "Terminé ! Ferme ta session (ou relance kitty) pour profiter de zsh."
+À faire à la main :
+  - Redémarrer (noyau, AppArmor, démarrage silencieux, SDDM).
+  - SSH : copier ta clé depuis l'autre machine (ssh-copy-id), puis, si tu veux couper le mot de passe,
+    mettre SSH_DISABLE_PASSWORD="yes" dans config.env et relancer : ./install.sh --only security
+  - Te connecter à Proton (Mail, VPN, Pass), Steam, Obsidian.
+  - Mises à jour du firmware : fwupdmgr get-updates
+EOF
