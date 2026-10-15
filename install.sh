@@ -9,6 +9,7 @@
 #   apps      Firefox, Steam, Blender, Obsidian, VS Code, Proton, OnlyOffice...
 #   desktop   Hyprland + shell Lucid + SDDM
 #   hardware  microcode, pilote NVIDIA (open) et réglages Hyprland/boot associés
+#   hyprbars  (facultatif) barres de titre façon macOS : HYPRBARS="yes" ou --only hyprbars
 #   boot      démarrage silencieux avec logo (Plymouth)
 #
 # Usage : ./install.sh [--dry-run] [--only a,b] [--skip a,b] [--list] [-h]
@@ -24,7 +25,7 @@ export FILES="$REPO_DIR/files"
 # shellcheck source=lib/common.sh
 source "$REPO_DIR/lib/common.sh"
 
-ALL_MODULES=(base system security shell apps desktop hardware boot)
+ALL_MODULES=(base system security shell apps desktop hardware hyprbars boot)
 ONLY=""
 SKIP=""
 DRY_RUN=0
@@ -53,7 +54,7 @@ fi
 # Configuration (config.env, voir config.env.example) — jamais commitée
 # --------------------------------------------------------------------------
 HOSTNAME_NEW="" LAN_CIDR="" SSH_GITHUB_USER="" SSH_DISABLE_PASSWORD="no" FAIL2BAN_IGNORE=""
-EXTRA_PACKAGES="" LUCID_INSTALL_FLAGS="" AUR_REVIEW="yes" APPARMOR_MODE="complain" BOOT_SPLASH="yes" PLYMOUTH_THEME="arch-logo" BOOT_HIDE_MENU="yes" PRUNE="yes" KB_LAYOUT=""
+EXTRA_PACKAGES="" HYPRBARS="no" LUCID_INSTALL_FLAGS="" AUR_REVIEW="yes" APPARMOR_MODE="complain" BOOT_SPLASH="yes" PLYMOUTH_THEME="arch-logo" BOOT_HIDE_MENU="yes" PRUNE="yes" KB_LAYOUT=""
 LUCID_REF="3d6ed3b84edf7c31d24117eb58ed86cb357113c5" LUCID_COMMIT="3d6ed3b84edf7c31d24117eb58ed86cb357113c5"
 if [[ -f $REPO_DIR/config.env ]]; then
     # shellcheck source=/dev/null
@@ -61,7 +62,7 @@ if [[ -f $REPO_DIR/config.env ]]; then
     info "Configuration chargée : config.env"
 fi
 export HOSTNAME_NEW LAN_CIDR SSH_GITHUB_USER SSH_DISABLE_PASSWORD FAIL2BAN_IGNORE
-export EXTRA_PACKAGES LUCID_INSTALL_FLAGS AUR_REVIEW APPARMOR_MODE BOOT_SPLASH PLYMOUTH_THEME BOOT_HIDE_MENU PRUNE KB_LAYOUT LUCID_REF LUCID_COMMIT
+export EXTRA_PACKAGES HYPRBARS LUCID_INSTALL_FLAGS AUR_REVIEW APPARMOR_MODE BOOT_SPLASH PLYMOUTH_THEME BOOT_HIDE_MENU PRUNE KB_LAYOUT LUCID_REF LUCID_COMMIT
 
 in_list() { [[ ",$2," == *",$1,"* ]]; }
 

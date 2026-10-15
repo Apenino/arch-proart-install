@@ -312,3 +312,41 @@ connexions SSH réussissaient. Journal : `ssh_systemd_notify: socket "/run/syste
   `fish` est retiré s'il n'est plus le shell de connexion ; un paquet exigé par un autre (ex. `cachyos-fish-config`)
   est conservé sans bloquer le reste du nettoyage.
 
+## 15. hyprbars : barres de titre façon macOS (module facultatif)
+
+Lucid n'a pas d'option de barre de titre ni de boutons de fenêtre, et Hyprland n'en dessine pas : les applications
+n'ont des boutons que si elles les dessinent elles-mêmes (les applications GTK n'affichent qu'une croix : réglage
+`button-layout = appmenu:close`). Dans Hyprland il n'y a de plus ni vraie réduction (pas de barre des tâches) ni
+agrandissement classique : le bouton jaune de macOS n'a pas d'équivalent direct.
+
+- **Solution** : le plugin `hyprbars` (hyprwm/hyprland-plugins), absent des dépôts Arch et de l'AUR, compilé ici avec
+  `make` contre les en-têtes du paquet `hyprland`, **au commit que `hyprpm.toml` épingle pour la version installée**
+  (hash vérifié). Le chargeur `files/hyprbars/hyprbars-plugin.sh` est adapté du script que Lucid utilise pour son
+  plugin de curseur (compile, recompile si Hyprland change, charge). Aucun `hyprpm`, aucun `cmake`, aucun droit root.
+- **Boutons** (de gauche à droite) : rouge = fermer, jaune = ranger dans le scratchpad de Lucid, vert = plein écran.
+- **Piège 1** : `require("modules.specials").stash()` **renvoie une fonction** (les raccourcis de Lucid l'appellent à
+  chaque pression) ; il faut `stash()()`. Avec une seule paire de parenthèses le bouton ne fait rien, et `hyprctl`
+  répond quand même `ok`.
+- **Piège 2, erreur de procédure** : un test « de bouton » lancé sans vérifier que la fenêtre de test existait encore a
+  visé la fenêtre active (celle d'un utilisateur). Les tests d'actions se font désormais avec un **garde-fou** : avant
+  chaque action, on vérifie que la fenêtre active est bien la fenêtre de test, sinon on abandonne sans rien lancer.
+- **Au clic**, hyprbars donne d'abord le focus à la fenêtre cliquée puis exécute l'action : « fermer » vise toujours la
+  bonne fenêtre.
+- **Sauvegarde avant essai** : archive de `~/.config/hypr`, des préférences de Lucid et des plugins, snapshots Btrfs,
+  et un script de rollback qui décharge le plugin, supprime les fichiers et restaure la configuration.
+- **Activation** : `HYPRBARS="yes"` dans `config.env`, ou `./install.sh --only hyprbars`.
+
+## 16. Bilan
+
+Une configuration complète (système, sécurité, shell, applications, bureau, démarrage) est reproductible par un script
+modulaire, idempotent, en `--dry-run`, testé de bout en bout sur une installation CachyOS réelle. Les deux principales
+leçons de méthode :
+
+1. **Revalider à froid** : un correctif qui marche « à chaud » peut échouer au démarrage (cas de `sshd`, §13).
+2. **Lire l'état réel, pas seulement le journal** : le processus affichait `sshd (complain)` alors que le fichier voulu
+   était `enforce` ; la comparaison entre le fichier et ce que le noyau a chargé a levé le doute.
+
+**Pistes restantes** : GRUB/Limine à tester, une installation Arch « nue », sauvegarde externe (les snapshots sont sur
+le même disque), chiffrement du disque et Secure Boot (`sbctl`), profils AppArmor pour d'autres services, mise en
+conformité de la machine de référence avec les deux correctifs du profil `sshd`.
+

@@ -38,6 +38,7 @@ fichiers remplacés sont sauvegardés en `*.bak.<date>`.
 | `apps` | Firefox, Steam (+ Vulkan 32 bits selon le GPU), Blender, Discord, VLC, Obsidian, VS Code (Code-OSS), Proton VPN / Pass / Mail, OnlyOffice |
 | `desktop` | Hyprland + [Lucid](https://github.com/Sn3akyy1/lucid) avec son look complet (starship, kitty) — version **épinglée et vérifiée par commit** —, SDDM avec le thème Lucid, clavier du système, curseur sans rotation, nettoyage sûr des paquets inutiles |
 | `hardware` | microcode CPU ; **pilote NVIDIA open** (RTX 50 : indispensable), paramètres noyau `nvidia-drm`, chargement précoce des modules, variables d'environnement Hyprland |
+| `hyprbars` | **facultatif** (`HYPRBARS="yes"` ou `--only hyprbars`) : barres de titre façon macOS (pastilles rouge = fermer, jaune = ranger dans le scratchpad de Lucid, verte = plein écran) via le plugin `hyprbars`, compilé pour ta version de Hyprland |
 | `boot` | Démarrage silencieux avec le logo Arch (Plymouth), menu du bootloader masqué |
 
 ## Configuration (`config.env`)
@@ -56,6 +57,12 @@ adresse personnelle n'est dans le dépôt**.
 | `BOOT_SPLASH` / `BOOT_HIDE_MENU` | démarrage silencieux / menu masqué |
 | `PRUNE` | nettoyage des paquets inutiles installés avec Lucid |
 | `KB_LAYOUT` | clavier Hyprland (sinon celui du système) |
+| `PLYMOUTH_THEME` | `arch-logo` (logo Arch, par défaut) ou `keep` pour garder le thème de la distribution |
+| `HYPRBARS` | `yes` active le module facultatif hyprbars |
+| `AUR_REVIEW` | `no` installe les paquets AUR sans afficher le `PKGBUILD` (lancement non interactif) ; garde `yes` par défaut |
+| `LUCID_INSTALL_FLAGS` | options de l'installeur de Lucid (ex. `-y --no-apps --no-hypr --no-wallpapers --no-plugins` sur une machine déjà réglée) |
+| `LUCID_REF` / `LUCID_COMMIT` | commit de Lucid épinglé (le hash est vérifié après le clonage) |
+| `EXTRA_PACKAGES` | paquets supplémentaires des dépôts (ex. `solaar`) |
 
 ## Choix de sécurité à connaître
 
@@ -64,7 +71,10 @@ adresse personnelle n'est dans le dépôt**.
 - **Pare-feu** : tout le trafic entrant est refusé, sauf SSH depuis ton réseau local.
 - **AppArmor** : le profil `sshd` est en mode `complain` par défaut (il journalise sans bloquer). Après une
   connexion SSH réussie, passe `APPARMOR_MODE="enforce"` et relance `./install.sh --only security`.
-  Les shells et commandes lancés après connexion ne sont **pas** confinés.
+  Les shells et commandes lancés après connexion ne sont **pas** confinés. Le profil porte `attach_disconnected` :
+  sur le noyau CachyOS, sans lui, `sshd` ne peut pas signaler « prêt » à systemd et reste en `activating`.
+- **Sauvegardes** : les fichiers remplacés sont copiés dans `/var/backups/arch-proart-install/` (jamais à côté de
+  l'original : certains dossiers, comme `/etc/apparmor.d/`, sont lus en entier par leur service).
 - **`sudo` sans mot de passe** : le script n'y touche pas.
 - **Démarrage** : sans menu visible, maintiens la **barre d'espace** au démarrage pour l'afficher (noyau de
   secours). Les paramètres noyau sont gérés pour **systemd-boot** et **GRUB** ; avec un autre bootloader
@@ -78,10 +88,24 @@ adresse personnelle n'est dans le dépôt**.
 
 ## État des tests
 
-Testé sur **Arch Linux + systemd-boot (images UKI) + Btrfs**, sur un portable Intel (Dell). Le module `hardware` (NVIDIA) est vérifié par tests unitaires et simulation de GPU, **pas sur la vraie carte**. Les modules ont été
-validés en `--dry-run` (idempotence) et à la main. Une installation CachyOS a été **inspectée en lecture seule** (bootloader `sdboot-manage`, Plymouth, NVIDIA, Btrfs) et
-le script corrigé en conséquence (voir `docs/HISTORIQUE.md`, §11), mais **il n'a pas encore été exécuté de bout
-en bout dessus** : lance d'abord `./install.sh --dry-run` et relis ce qui est affiché.
+**Exécuté de bout en bout** sur la machine cible : **CachyOS + systemd-boot + Btrfs + NVIDIA RTX 5080** (PC de bureau,
+Ryzen 9 9950X3D). Le premier lancement réel a révélé quatre défauts, tous corrigés (voir `docs/HISTORIQUE.md`,
+§12 et §13), puis deux redémarrages à froid ont validé le résultat (`sshd` confiné en `enforce`, pilote NVIDIA,
+SDDM + Lucid, démarrage silencieux, aucune unité en échec). Les modules ont aussi été validés en `--dry-run`
+(idempotence) sur une seconde machine, **Arch Linux + systemd-boot (UKI) + Btrfs** sur un portable Intel.
+
+**Non testé** : GRUB et Limine (les paramètres noyau sont gérés pour GRUB mais n'ont pas été exécutés ; Limine
+affiche les paramètres à ajouter à la main), une installation Arch « nue » (hors CachyOS), un GPU AMD ou Intel sur
+une installation fraîche, le chiffrement LUKS. Lance toujours `./install.sh --dry-run` d'abord et relis la sortie.
+
+## Dépannage
+
+| Symptôme | Cause connue | Voir |
+|---|---|---|
+| `sshd` en `activating`, relancé en boucle après un redémarrage | profil AppArmor sans `attach_disconnected`, ou anciennes sauvegardes dans `/etc/apparmor.d/` | HISTORIQUE §13 |
+| Le script s'arrête sur « Commit Lucid inattendu » | l'auteur a déplacé un tag : relire le diff puis changer `LUCID_REF`/`LUCID_COMMIT` | HISTORIQUE §12 |
+| Paramètres noyau sans effet sous CachyOS | les entrées viennent de `sdboot-manage` (`LINUX_OPTIONS`), pas de `/etc/kernel/cmdline` | HISTORIQUE §11 |
+| Les écrans sont inversés dans Lucid | placement « auto » par ordre de connecteur | HISTORIQUE §14 |
 
 ## Historique et décisions
 
@@ -94,8 +118,8 @@ Tout ce qui a été fait sur la machine de référence, les pièges rencontrés 
 install.sh              point d'entrée (options, config, enchaînement des modules)
 config.env.example      options personnalisables (copier en config.env)
 lib/common.sh           journalisation, --dry-run, détection matériel/bootloader, helpers paquets et fichiers
-modules/                base, system, security, shell, apps, desktop, boot
-files/                  fichiers installés tels quels (sysctl, règles audit, profil AppArmor, thème Plymouth)
+modules/                base, system, security, shell, apps, desktop, hardware, hyprbars (facultatif), boot
+files/                  fichiers installés tels quels (sysctl, règles audit, profil AppArmor, thème Plymouth, hyprbars)
 docs/HISTORIQUE.md     historique complet, décisions, pièges, pistes
 docs/MATERIEL.md       fiche matérielle de la machine cible
 dotfiles/zsh/.zshrc    config zsh / oh-my-zsh (starship est ajouté par Lucid)

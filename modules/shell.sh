@@ -12,18 +12,6 @@ _clone_or_update() {
     fi
 }
 
-_install_dotfile() {
-    local src=$1 dest=$2
-    if [[ -f $dest ]] && cmp -s "$src" "$dest"; then
-        ok "Inchangé : $dest"
-        return 0
-    fi
-    dry && { printf '\e[2m  [dry-run] installerait %s\e[0m\n' "$dest"; return 0; }
-    backup "$dest"
-    install -D -m 644 "$src" "$dest"
-    ok "Installé : $dest"
-}
-
 # Retire powerlevel10k et les plugins clonés à la main (les paquets système les remplacent).
 _remove_p10k() {
     local zsh_custom="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}" p
@@ -43,7 +31,7 @@ module_shell() {
 
     _clone_or_update https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh"
     _remove_p10k
-    _install_dotfile "$DOTFILES/zsh/.zshrc" "$HOME/.zshrc"
+    install_user_file "$DOTFILES/zsh/.zshrc" "$HOME/.zshrc"
 
     if [[ "$(getent passwd "$USER" | cut -d: -f7)" != /usr/bin/zsh ]]; then
         run sudo chsh -s /usr/bin/zsh "$USER"

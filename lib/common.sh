@@ -142,6 +142,19 @@ backup() {
     fi
 }
 
+# install_user_file SRC DEST [MODE] : copie un fichier dans le $HOME (idempotent ; sauvegarde l'ancien en .bak.<date>).
+install_user_file() {
+    local src=$1 dest=$2 mode=${3:-644}
+    if [[ -f $dest ]] && cmp -s "$src" "$dest"; then
+        ok "Inchangé : $dest"
+        return 0
+    fi
+    dry && { printf '\e[2m  [dry-run] installerait %s\e[0m\n' "$dest"; return 0; }
+    backup "$dest"
+    install -D -m "$mode" "$src" "$dest"
+    ok "Installé : $dest"
+}
+
 # write_root_file DEST [MODE] : écrit stdin dans DEST (root). Idempotent, sauvegarde l'ancien fichier.
 write_root_file() {
     local dest=$1 mode=${2:-644} tmp
