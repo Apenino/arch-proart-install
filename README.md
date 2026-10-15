@@ -81,6 +81,11 @@ validés en `--dry-run` (idempotence) et à la main. **Pas encore testé sur une
 fraîche** (autre bootloader possible, autres valeurs par défaut) : lance d'abord `./install.sh --dry-run`
 et relis ce qui est affiché.
 
+## Historique et décisions
+
+Tout ce qui a été fait sur la machine de référence, les pièges rencontrés et ce qui reste à faire :
+**[docs/HISTORIQUE.md](docs/HISTORIQUE.md)**.
+
 ## Structure
 
 ```
@@ -89,6 +94,7 @@ config.env.example      options personnalisables (copier en config.env)
 lib/common.sh           journalisation, --dry-run, détection matériel/bootloader, helpers paquets et fichiers
 modules/                base, system, security, shell, apps, desktop, boot
 files/                  fichiers installés tels quels (sysctl, règles audit, profil AppArmor, thème Plymouth)
+docs/HISTORIQUE.md     historique complet, décisions, pièges, pistes
 dotfiles/
 ├── kitty/kitty.conf    config kitty
 └── zsh/
