@@ -10,6 +10,11 @@ module_base() {
         run sudo sed -i -E 's/^#(Color)$/\1/; s/^#(ParallelDownloads.*)$/\1/' /etc/pacman.conf
     fi
 
+    # CheckSpace : pacman vérifie l'espace disque avant d'installer (absent de certaines configs CachyOS)
+    if ! grep -qE '^CheckSpace' /etc/pacman.conf; then
+        run sudo sed -i -E '0,/^(ParallelDownloads.*|Color)$/ s/^(ParallelDownloads.*|Color)$/\1\nCheckSpace/' /etc/pacman.conf
+    fi
+
     if grep -q '^\[multilib\]' /etc/pacman.conf; then
         ok "multilib déjà activé"
     else

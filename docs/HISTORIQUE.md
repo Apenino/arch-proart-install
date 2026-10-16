@@ -479,3 +479,27 @@ AppArmor `sshd` corrigé (`attach_disconnected`) et le lissage XWayland. Appliqu
 `--dry-run`. Le fichier `/etc/sudoers.d/10-nopasswd` posé pendant l'installation a ensuite été supprimé sur les **deux**
 machines (le `sudo` demande de nouveau un mot de passe). Conséquence : les modules qui utilisent `sudo` ne se lancent plus
 sans terminal interactif ; à partir de maintenant ils se lancent depuis une session où l'utilisateur saisit son mot de passe.
+
+## 22. Audit complet de la machine de référence (16/10/2026) et correctifs
+
+Audit en lecture seule : aucune unité en échec, SSD sain (SMART OK, 1 % d'usure), pile de sécurité active (79 profils AppArmor en
+`enforce`, aucun bannissement), bureau sans doublon de processus. Points traités :
+
+- **`NetworkManager-wait-online` (15,6 s dans `systemd-analyze blame`)** : **hors du chemin critique** (`graphical.target` est atteint
+  à 3,4 s). Il ne retarde que les unités qui attendent `network-online.target` (montages réseau, `fwupd-refresh`). Aucun changement.
+- **Erreurs CIFS du noyau** (« Close interrupted / unmatched open ») avec des partages montés à la demande (`x-systemd.automount`) :
+  tous les partages sont montés en rafale, puis démontés au bout de 60 s d'inactivité pendant que des fichiers sont ouverts
+  (lecture vidéo, gestionnaire de fichiers). Corrigé en passant `x-systemd.idle-timeout` de 60 à 600. Réglage propre à la machine,
+  donc **non porté dans le script**.
+- **Fichiers `.pacnew`** (`pacman.conf`, listes de miroirs, `resolv.conf`) : la config en place était plus riche (Color,
+  ILoveCandy, dépôts CachyOS v4) ; seul `CheckSpace` a été repris (ajouté au module `base`), les `.pacnew` supprimés après copie dans
+  `/var/backups/arch-proart-install/`.
+- **Paquet orphelin `electron`** : **ne pas le retirer**. Proton Pass tourne avec `/usr/lib/electron44/electron` sans le déclarer
+  comme dépendance (`electron44` n'est « requis » que par le méta-paquet `electron`). Marqué comme installé volontairement
+  (`pacman -D --asexplicit electron`). VS Code utilise `electron42`, Obsidian et Proton Mail `electron43`.
+- **Mises à jour** (10 paquets : firefox, freetype2, glycin, xorg-server...) appliquées avec un snapshot avant/après (52 / 53). Pas
+  de noyau ni de pilote NVIDIA : le cache de shaders reste valide.
+- **Les plantages Electron/OnlyOffice de 09:00** sont ceux de l'audit du §19 (applications lancées puis fermées par `SIGTERM`), pas
+  des bogues ; le second SEGV de Hyprland (09:44) est l'instance en mode sans échec, cf. §21.
+- **À surveiller** : Quickshell occupe 2,6 Go de mémoire après 4,2 h de session (fuite possible, non confirmée).
+
