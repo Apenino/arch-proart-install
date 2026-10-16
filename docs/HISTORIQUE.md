@@ -565,3 +565,23 @@ Apple de l'utilisateur. **Non ajouté au script** tant que l'essai n'est pas con
 **Partages NAS** : au démarrage suivant, sept montages `x-systemd.automount` sont passés en échec (« Mounting timed out », noyau : « Error connecting to socket »)
 alors que le NAS répondait ensuite (ping, port 445). Remis d'aplomb par `systemctl reset-failed` puis un accès au partage. Le délai `x-systemd.mount-timeout=10`
 est peut-être trop court si le NAS sort de veille (piste : 30 s) ; **non modifié**, à surveiller.
+
+## 28. Gros nettoyage et contrôle de sécurité du dépôt (17/10/2026)
+
+**Nettoyage** : Apple Music retiré (§27, `PROBLEMES-CONNUS.md` §11) ; cache de pacman allégé (il garde les versions installées, 4,2 Go) ; cache AUR et
+fichiers de plantage (82 Mo) supprimés ; miniatures et capture figée de Lucid effacées. **Laissés volontairement** : cache de shaders de Steam (14 Go,
+40 à 60 min à recompiler), cache de Firefox, clone de Lucid (`~/.cache/arch-proart`), sauvegardes de configuration.
+
+**Contrôle du dépôt public** (copie de travail et historique complet, 41 commits, un seul auteur, branche `main`, tag `v1.0.0`) :
+- aucun fichier sensible jamais suivi (`config.env`, clés, `.env`, identifiants NAS : 0 commit) ; `config.env` est ignoré par git ;
+- aucun secret (clés privées, jetons GitHub/AWS/Slack, mots de passe) dans le patch de l'historique ; les correspondances étaient des commandes (`getent passwd`)
+  et des règles d'audit ;
+- aucune donnée personnelle dans le **contenu** (IP de machines, MAC, séries d'écrans, identifiants Steam/NAS, clés SSH publiques) ; seule l'adresse d'auteur des
+  commits, choisie par l'utilisateur, est visible dans les métadonnées ;
+- aucun caractère invisible ou bidirectionnel (« Trojan Source »), aucun caractère de contrôle, aucun motif dangereux (`curl | sh`, `eval`, `base64 -d`,
+  `/dev/tcp`, `chmod 777`, `NOPASSWD`...) ; aucun hook git ; un seul binaire, `logo.png` (PNG valide, sans donnée ajoutée après la fin du fichier) ;
+- réseau du code : dépôts fixes de GitHub/AUR (`hyprland-plugins` au commit épinglé par le projet, Lucid épinglé par hash vérifié, `yay-bin` seulement sans assistant
+  AUR, clés publiques du compte GitHub choisi par l'utilisateur dans `config.env`).
+- **Point de vigilance** : `oh-my-zsh` est cloné **sans épinglage** (`--depth=1` de la branche par défaut). Risque d'approvisionnement faible mais réel ; piste :
+  l'épingler sur un commit comme Lucid. Autre point : la clé de déploiement de ProArt a l'accès en écriture au dépôt ; à retirer sur GitHub si elle ne sert plus.
+

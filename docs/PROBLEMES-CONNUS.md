@@ -146,3 +146,11 @@ thème la reverrouille.
 écrase ce que Settings a écrit. Ce n'est pas une modification de ce dépôt (aucune référence à `lucid-look` dans le script avant la correction).
 **Correction** : `lucid-look` est chargé **avant** `settings` (`hypr_require_before`, appelé par le module `tweaks`). Résultat : liste `overridden`
 vide, arrondi 10 appliqué. **Vérifié par l'utilisateur après un changement de thème** : la réglette reste libre, la liste `overridden` reste vide.
+
+## 11. Apple Music (client tiers AUR) ne démarre pas — `abandonné` (paquet retiré)
+
+`apple-music-bin` 2.1.2 (Electron 28) s'arrête au démarrage : « Failed to install required components » (échec de l'installation du composant
+Widevine, nécessaire à la lecture ; `--cdm-info` donne la même erreur). Le réseau n'est pas en cause (serveurs Google et Apple joignables). Cause
+probable, non confirmée : Electron 28 trop ancien pour le service de composants actuel. Paquet retiré le 17/10/2026. Pistes : `sidra-bin` (non essayé),
+ou Apple Music dans Firefox (Widevine déjà géré).
+
