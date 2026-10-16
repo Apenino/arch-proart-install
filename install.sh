@@ -1,18 +1,11 @@
 #!/usr/bin/env bash
 # Script post-installation Arch Linux / CachyOS (ASUS ProArt)
 #
-# Modules, dans l'ordre d'exécution :
-#   base      pacman.conf, multilib, mise à jour, assistant AUR
-#   system    Btrfs + snapshots, maintenance, énergie, nom d'hôte
-#   security  SSH, pare-feu, fail2ban, auditd, AppArmor, sysctl
-#   shell     zsh + oh-my-zsh (le prompt starship et kitty viennent de Lucid)
-#   apps      Firefox, Steam, Blender, Obsidian, VS Code, Proton, OnlyOffice...
-#   desktop   Hyprland + shell Lucid + SDDM
-#   hardware  microcode, pilote NVIDIA (open) et réglages Hyprland/boot associés
-#   hyprbars  (facultatif) barres de titre façon macOS : HYPRBARS="yes" ou --only hyprbars
-#   boot      démarrage silencieux avec logo (Plymouth)
+# Chaque module se rejoue seul (./install.sh --only NOM) ; « interface » = touche à la config du bureau Hyprland
+# et ne fait rien si celui-ci n'est pas installé (module desktop non lancé).
 #
 # Usage : ./install.sh [--dry-run] [--only a,b] [--skip a,b] [--list] [-h]
+#         ./install.sh --list     liste les modules avec leur rôle
 # À lancer en utilisateur normal (pas en root) : sudo est demandé quand c'est nécessaire.
 
 set -euo pipefail
@@ -25,19 +18,33 @@ export FILES="$REPO_DIR/files"
 # shellcheck source=lib/common.sh
 source "$REPO_DIR/lib/common.sh"
 
-ALL_MODULES=(base system security shell apps desktop hardware hyprbars boot)
+# Ordre d'exécution : nom|interface|rôle
+MODULE_TABLE='base|non|pacman.conf, multilib, mise à jour, assistant AUR
+system|non|Btrfs + snapshots, maintenance, énergie, nom de la machine
+security|non|SSH, pare-feu, fail2ban, auditd, AppArmor, sysctl
+shell|non|zsh + oh-my-zsh
+apps|non|Firefox, Steam, Blender, Obsidian, VS Code, Proton, OnlyOffice...
+desktop|oui|Hyprland + shell Lucid + SDDM (installe le bureau)
+tweaks|oui|réglages Hyprland : clavier, curseur, XWayland, latence de jeu (facultative)
+hardware|en partie|microcode, pilote NVIDIA open, paramètres noyau (variables Hyprland ignorées sans interface)
+hyprbars|oui|facultatif : barres de titre façon macOS (HYPRBARS=yes|remove)
+boot|non|démarrage silencieux avec logo (Plymouth)'
+ALL_MODULES=()
+while IFS='|' read -r name _ _; do ALL_MODULES+=("$name"); done <<<"$MODULE_TABLE"
 ONLY=""
 SKIP=""
 DRY_RUN=0
 
-usage() { sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0; }
+usage() { sed -n '2,9p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0; }
 
 while (($#)); do
     case $1 in
         --dry-run) DRY_RUN=1 ;;
         --only)    ONLY="${2:?--only demande une liste}"; shift ;;
         --skip)    SKIP="${2:?--skip demande une liste}"; shift ;;
-        --list)    printf '%s\n' "${ALL_MODULES[@]}"; exit 0 ;;
+        --list)    printf '%-10s %-10s %s\n' MODULE INTERFACE RÔLE
+                   while IFS='|' read -r name ui desc; do printf '%-10s %-10s %s\n' "$name" "$ui" "$desc"; done <<<"$MODULE_TABLE"
+                   exit 0 ;;
         -h|--help) usage ;;
         *) die "Option inconnue : $1 (voir --help)" ;;
     esac
@@ -65,6 +72,11 @@ export HOSTNAME_NEW LAN_CIDR SSH_GITHUB_USER SSH_DISABLE_PASSWORD FAIL2BAN_IGNOR
 export EXTRA_PACKAGES XWAYLAND_SMOOTH GAMING_LATENCY HYPRBARS LUCID_INSTALL_FLAGS AUR_REVIEW APPARMOR_MODE BOOT_SPLASH PLYMOUTH_THEME BOOT_HIDE_MENU PRUNE KB_LAYOUT LUCID_REF LUCID_COMMIT
 
 in_list() { [[ ",$2," == *",$1,"* ]]; }
+
+# Un nom inconnu dans --only / --skip est une faute de frappe : on le dit au lieu de l'ignorer.
+for name in ${ONLY//,/ } ${SKIP//,/ }; do
+    in_list "$name" "$(IFS=,; echo "${ALL_MODULES[*]}")" || die "Module inconnu : $name (voir --list)"
+done
 
 selected=()
 for m in "${ALL_MODULES[@]}"; do

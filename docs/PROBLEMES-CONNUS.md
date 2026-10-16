@@ -61,30 +61,46 @@ Contournement local non testé : `asynchronous: false` dans `lucidbar/ActiveWind
 
 Menus de Lucid en anglais, sans option de langue (pas de `qsTr`). Seul l'auteur peut l'ajouter.
 
-## 6. Latence de jeu (CS2) — `appliqué`, efficacité `à vérifier en jeu`
+## 6. Latence de jeu (CS2) — `désactivé`, gain non démontré
 
-**Appliqué** (`files/hypr/gaming.lua`, option `GAMING_LATENCY`) : `general:allow_tearing = true`, `render:direct_scanout = 2`
-(automatique), règle de fenêtre `cs2` en `immediate` + plein écran, souris en profil plat (`accel_profile = "flat"`,
-`sensitivity = 0`). Hyprland accepte l'ensemble sans erreur de configuration.
+**Module** : `files/hypr/gaming.lua` (option `GAMING_LATENCY`, **désactivée par défaut**) : `general:allow_tearing = true`,
+`render:direct_scanout = 2`, règle de fenêtre `cs2` en `immediate` + plein écran, souris en profil plat
+(`accel_profile = "flat"`, `sensitivity = 0`). Hyprland accepte l'ensemble sans erreur de configuration.
 
-**Limites connues** (à garder en tête avant d'attendre un gain) :
+**Mesure (16/10/2026, CS2 en plein écran, `hyprctl monitors -j`)** : le tearing **n'est pas actif**
+(`activelyTearing = False` sur les deux écrans). Le jeu est une fenêtre XWayland de 3072×1728 (état plein écran 2) agrandie
+par Hyprland sur un écran 4K à l'échelle 1,25. Raisons rapportées : tearing `NOT_TORN`, `CANDIDATE` ; scanout direct
+`CONTENT`, `SW`, `CANDIDATE` (écran du jeu) et `WINDOWED`, `SW`, `CANDIDATE` (l'autre). Le sens exact de ces codes n'a pas pu
+être confirmé dans le code source (téléchargement impossible) : l'explication « fenêtre mise à l'échelle par le compositeur »
+est une **déduction** cohérente avec les codes, pas une preuve.
+
+**Effet constaté en jeu** : avec le module actif, la vue ne tournait plus du tout dans une partie (menu normal). Module
+désactivé, la vue a de nouveau tourné. **Cause non isolée** : le test n'était pas contrôlé (le jeu a été relancé entre les
+deux) ; la souris plate seule, la règle `immediate` ou la sensibilité du jeu (passée à 1) restent possibles. Pour
+réessayer, activer **un seul réglage à la fois** (`input` d'abord, puis la règle de fenêtre).
+
+**Limites connues** :
 
 1. **Écran 60 Hz** (Dell U2718Q ×2) : la réactivité est d'abord limitée par l'écran ; un moniteur 144 à 240 Hz change bien
    plus que n'importe quel réglage logiciel. Pas de VRR sur ces écrans.
-2. **Le tearing et le scanout direct exigent une fenêtre plein écran non mise à l'échelle par le compositeur.** CS2 est un
-   client XWayland et l'écran est à l'échelle 1,25 : Hyprland agrandit la fenêtre du jeu, ce qui bloque a priori le
-   scanout direct. Le gain n'est donc pas garanti dans cette configuration. Pour l'obtenir : `xwayland:force_zero_scaling`
-   avec le jeu en 3840×2160 (voir §1), ce qui demande de rouvrir la session.
+2. **Tearing et scanout direct exigent a priori une fenêtre plein écran non mise à l'échelle par le compositeur.** Pour
+   essayer : `xwayland:force_zero_scaling` avec le jeu en 3840×2160 (voir §1), ce qui demande de rouvrir la session et
+   rapetisse les autres applications X11. Non testé.
 3. La souris plate ne change que le **bureau** : le jeu reçoit déjà des mouvements bruts (protocole de pointeur relatif).
 
-**Vérification objective, pendant que CS2 est en plein écran** : `hyprctl monitors -j` expose, par écran, `activelyTearing`,
-`tearingBlockedBy` et `directScanoutBlockedBy` (la liste des raisons qui empêchent le tearing/scanout). Au repos :
-`tearingBlockedBy = ['NOT_TORN', 'CANDIDATE']`. Si, en jeu, `activelyTearing` reste `False` et qu'une raison de type
-échelle/plein écran apparaît, c'est la limite n°2.
+**Réglage de sensibilité (conseil)** : souris Logitech G502 X à 800 DPI avec `sensitivity 1,99` = eDPI **1 592**, au-dessus de
+la plage habituelle (environ 800 à 1 100). Valeur passée à `1` par l'utilisateur, qui doit s'y habituer.
 
-**Réglage de sensibilité (conseil, non appliqué)** : souris Logitech G502 X à 800 DPI avec `sensitivity 1,99` = eDPI **1 592**,
-au-dessus de la plage habituelle (environ 800 à 1 100). Une valeur de départ proche de `1.0` à `1.25` est un bon essai ;
-changer progressivement et garder la même sensibilité partout.
+## 7. Décharger le plugin hyprbars à chaud fait planter Hyprland — `contourné`
+
+Le 16/10/2026, le retour arrière du module `hyprbars` a déchargé le plugin dans la session en cours (`hyprctl plugin unload`),
+puis supprimé le `.so`. Quelques minutes plus tard Hyprland a fait un **SEGV** (saut vers une adresse qui n'existe plus : rappel
+laissé par le plugin déchargé, c'est une déduction), le watchdog l'a relancé en **mode sans échec** (écran vide, plus de Lucid)
+et **toutes les applications ouvertes ont été perdues**. Rien n'était cassé côté configuration.
+
+**Règle** : ne jamais décharger un plugin Hyprland à chaud. `HYPRBARS="remove"` retire la ligne de `hyprland.lua` et les
+fichiers, puis il faut **rouvrir la session**. Pour sortir du mode sans échec : `systemctl --user stop wayland-wm@hyprland.desktop.service`
+(retour à SDDM). Voir `HISTORIQUE.md` §21.
 
 ## À surveiller (non reproduit)
 

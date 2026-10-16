@@ -22,10 +22,13 @@ Le script peut être relancé sans risque : les fichiers déjà conformes sont l
 fichiers remplacés sont sauvegardés en `*.bak.<date>`.
 
 ```
-./install.sh --list                  # liste des modules
-./install.sh --only security,boot    # seulement ces modules
+./install.sh --list                  # modules, rôle, et s'ils touchent à l'interface
+./install.sh --only security,boot    # seulement ces modules (chacun se rejoue seul)
 ./install.sh --skip apps,desktop     # tout sauf ceux-là
 ```
+
+Les modules marqués « interface » ne modifient le bureau que s'il est installé (module `desktop` déjà lancé) ; sinon
+ils s'ignorent et le disent. `./tests/check.sh` vérifie la syntaxe, shellcheck et les helpers (sans toucher à la machine).
 
 ## Modules (dans l'ordre d'exécution)
 
@@ -36,9 +39,10 @@ fichiers remplacés sont sauvegardés en `*.bak.<date>`.
 | `security` | `sshd` durci, pare-feu `ufw` (SSH depuis le réseau local seulement), `fail2ban`, `auditd`, AppArmor (profil `sshd`), sysctl, LLMNR/mDNS coupés |
 | `shell` | zsh + oh-my-zsh (thème `robbyrussell`) + plugins système autosuggestions et syntax-highlighting ; le prompt **starship** et kitty viennent de Lucid |
 | `apps` | Firefox, Steam (+ Vulkan 32 bits selon le GPU), Blender, Discord, VLC, Obsidian, VS Code (Code-OSS), Proton VPN / Pass / Mail, OnlyOffice |
-| `desktop` | Hyprland + [Lucid](https://github.com/Sn3akyy1/lucid) avec son look complet (starship, kitty) — version **épinglée et vérifiée par commit** —, SDDM avec le thème Lucid, clavier du système, curseur sans rotation, nettoyage sûr des paquets inutiles |
-| `hardware` | microcode CPU ; **pilote NVIDIA open** (RTX 50 : indispensable), paramètres noyau `nvidia-drm`, chargement précoce des modules, variables d'environnement Hyprland |
-| `hyprbars` | **facultatif** (`HYPRBARS="yes"` ou `--only hyprbars`) : barres de titre façon macOS (pastilles rouge = fermer, jaune = ranger dans le scratchpad de Lucid, verte = plein écran) via le plugin `hyprbars`, compilé pour ta version de Hyprland |
+| `desktop` | Hyprland + [Lucid](https://github.com/Sn3akyy1/lucid) avec son look complet (starship, kitty) — version **épinglée et vérifiée par commit** —, SDDM avec le thème Lucid, nettoyage sûr des paquets inutiles |
+| `tweaks` | *(interface)* réglages de la config Hyprland, rejouables sans réinstaller Lucid : clavier du système, curseur sans rotation, XWayland lissé, latence de jeu (facultative, désactivée) |
+| `hardware` | *(interface en partie)* microcode CPU ; **pilote NVIDIA open** (RTX 50 : indispensable), paramètres noyau `nvidia-drm`, chargement précoce des modules, variables d'environnement Hyprland |
+| `hyprbars` | *(interface)* **facultatif** (`HYPRBARS="yes"` ou `--only hyprbars`, `"remove"` pour retirer) : barres de titre façon macOS (pastilles rouge = fermer, jaune = ranger dans le scratchpad de Lucid, verte = plein écran) via le plugin `hyprbars`, compilé pour ta version de Hyprland |
 | `boot` | Démarrage silencieux avec le logo Arch (Plymouth), menu du bootloader masqué |
 
 ## Configuration (`config.env`)
@@ -59,8 +63,8 @@ adresse personnelle n'est dans le dépôt**.
 | `KB_LAYOUT` | clavier Hyprland (sinon celui du système) |
 | `PLYMOUTH_THEME` | `arch-logo` (logo Arch, par défaut) ou `keep` pour garder le thème de la distribution |
 | `XWAYLAND_SMOOTH` | `yes` (défaut) lisse XWayland (Steam...) au lieu de le pixéliser à l'échelle fractionnaire |
-| `GAMING_LATENCY` | `yes` active les réglages de latence de jeu (tearing, règle CS2, souris plate) ; voir `docs/PROBLEMES-CONNUS.md` §6 |
-| `HYPRBARS` | `yes` active le module facultatif hyprbars |
+| `GAMING_LATENCY` | `yes` active les réglages de latence de jeu — **déconseillé** pour l'instant, gain non démontré (`docs/PROBLEMES-CONNUS.md` §6) |
+| `HYPRBARS` | `yes` active le module facultatif hyprbars, `remove` le retire (rouvrir ensuite la session) |
 | `AUR_REVIEW` | `no` installe les paquets AUR sans afficher le `PKGBUILD` (lancement non interactif) ; garde `yes` par défaut |
 | `LUCID_INSTALL_FLAGS` | options de l'installeur de Lucid (ex. `-y --no-apps --no-hypr --no-wallpapers --no-plugins` sur une machine déjà réglée) |
 | `LUCID_REF` / `LUCID_COMMIT` | commit de Lucid épinglé (le hash est vérifié après le clonage) |
@@ -96,6 +100,10 @@ Ryzen 9 9950X3D). Le premier lancement réel a révélé quatre défauts, tous c
 SDDM + Lucid, démarrage silencieux, aucune unité en échec). Les modules ont aussi été validés en `--dry-run`
 (idempotence) sur une seconde machine, **Arch Linux + systemd-boot (UKI) + Btrfs** sur un portable Intel.
 
+Depuis la restructuration (module `tweaks`, helpers Hyprland), les modules concernés ont été validés en `--dry-run` sur la
+machine cible avec sa vraie configuration (aucun fichier modifié) et par `tests/check.sh`. Les réglages de latence de jeu et
+le module `hyprbars` ont été essayés puis retirés de la machine de référence (voir `docs/PROBLEMES-CONNUS.md` §6 et §7).
+
 **Non testé** : GRUB et Limine (les paramètres noyau sont gérés pour GRUB mais n'ont pas été exécutés ; Limine
 affiche les paramètres à ajouter à la main), une installation Arch « nue » (hors CachyOS), un GPU AMD ou Intel sur
 une installation fraîche, le chiffrement LUKS. Lance toujours `./install.sh --dry-run` d'abord et relis la sortie.
@@ -109,6 +117,7 @@ une installation fraîche, le chiffrement LUKS. Lance toujours `./install.sh --d
 | Paramètres noyau sans effet sous CachyOS | les entrées viennent de `sdboot-manage` (`LINUX_OPTIONS`), pas de `/etc/kernel/cmdline` | HISTORIQUE §11 |
 | Quickshell plante à l'ouverture d'une application | bogue connu d'icônes asynchrones (Qt 6.12 + Quickshell 0.3.2) | HISTORIQUE §17 |
 | Steam et les applications X11 sont pixélisés | échelle fractionnaire + filtrage XWayland par défaut (`XWAYLAND_SMOOTH`) | HISTORIQUE §18 |
+| Plus aucune fenêtre ni Lucid après un plantage, processus `Hyprland --safe-mode` | plugin déchargé à chaud : ne jamais le faire ; `systemctl --user stop wayland-wm@hyprland.desktop.service` puis reconnexion | HISTORIQUE §21 |
 | Les écrans sont inversés dans Lucid | placement « auto » par ordre de connecteur | HISTORIQUE §14 |
 
 ## Historique et décisions
@@ -123,7 +132,8 @@ Ce qui reste à corriger (rendu XWayland, CS2, etc.) : **[docs/PROBLEMES-CONNUS.
 install.sh              point d'entrée (options, config, enchaînement des modules)
 config.env.example      options personnalisables (copier en config.env)
 lib/common.sh           journalisation, --dry-run, détection matériel/bootloader, helpers paquets et fichiers
-modules/                base, system, security, shell, apps, desktop, hardware, hyprbars (facultatif), boot
+modules/                base, system, security, shell, apps, desktop, tweaks, hardware, hyprbars (facultatif), boot
+tests/check.sh          contrôles sans effet : syntaxe, shellcheck, modules, helpers Hyprland
 files/                  fichiers installés tels quels (sysctl, règles audit, profil AppArmor, thème Plymouth, hyprbars)
 docs/HISTORIQUE.md     historique complet, décisions, pièges, pistes
 docs/MATERIEL.md       fiche matérielle de la machine cible

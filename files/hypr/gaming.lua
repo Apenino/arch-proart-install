@@ -1,4 +1,5 @@
 -- Latence de jeu (CS2 et jeux Steam) — écrit par arch-proart-install (GAMING_LATENCY="yes" pour l'installer).
+-- DÉCONSEILLÉ pour l'instant (docs/PROBLEMES-CONNUS.md §6) : le tearing ne s'active pas sur la machine de référence.
 -- À charger APRÈS input.lua (c'est le cas) : ces valeurs surchargent celles de input.lua.
 hl.config({
     general = {

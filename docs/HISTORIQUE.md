@@ -314,6 +314,8 @@ connexions SSH réussissaient. Journal : `ssh_systemd_notify: socket "/run/syste
 
 ## 15. hyprbars : barres de titre façon macOS (module facultatif)
 
+> Retiré de la machine de référence le 16/10/2026 (le module reste dans le dépôt) : voir §21.
+
 Lucid n'a pas d'option de barre de titre ni de boutons de fenêtre, et Hyprland n'en dessine pas : les applications
 n'ont des boutons que si elles les dessinent elles-mêmes (les applications GTK n'affichent qu'une croix : réglage
 `button-layout = appmenu:close`). Dans Hyprland il n'y a de plus ni vraie réduction (pas de barre des tâches) ni
@@ -431,9 +433,41 @@ d'un écran 4K à l'échelle 1,25 : le jeu est agrandi par Hyprland.
 
 ## 20. Réglages de latence de jeu
 
+> Résultat des mesures et désactivation : voir §21 et `PROBLEMES-CONNUS.md` §6.
+
 Module `files/hypr/gaming.lua` (option `GAMING_LATENCY`, chargé après `input.lua`) : tearing autorisé, scanout direct
 automatique, règle `cs2` (`immediate` + plein écran), souris en profil plat. Constat utile : Hyprland 0.56 expose
 `activelyTearing`, `tearingBlockedBy` et `directScanoutBlockedBy` dans `hyprctl monitors -j`, ce qui permet de **vérifier**
 plutôt que supposer. Limite : écran à l'échelle 1,25 + client XWayland empêche a priori le scanout direct (voir
 `PROBLEMES-CONNUS.md` §6). Une souris plate n'agit que sur le bureau (les jeux utilisent le pointeur relatif brut).
 
+## 21. Latence testée, retour arrière de hyprbars, plantage de Hyprland et restructuration du dépôt (16/10/2026)
+
+**Tearing mesuré.** CS2 en plein écran (XWayland, 3072×1728 agrandi à l'échelle 1,25) : `activelyTearing = False` sur les deux
+écrans, scanout direct bloqué. Détail et limites de l'interprétation : `PROBLEMES-CONNUS.md` §6.
+
+**Test en jeu.** Avec `gaming.lua` actif la vue ne tournait plus en partie (la souris fonctionnait dans les menus). Le module a
+été commenté dans `hyprland.lua` (copie : `~/backups/hyprland.lua.avant-desactivation-gaming`), `hyprctl reload`, et la vue a
+de nouveau tourné. Cause non isolée (test non contrôlé). Décision : `GAMING_LATENCY` reste **désactivé**.
+
+**Retour arrière de hyprbars (billes macOS).** Le script de retour arrière écrit le 15/10 restaurait toute la sauvegarde de
+`~/.config/hypr`, ce qui aurait aussi annulé les réglages faits depuis (lissage XWayland, espaces de travail répartis) : il n'a
+**pas** été lancé. À la place : retrait ciblé (ligne `require`, module Lua, script de chargement, `.so`), fichiers rangés dans
+`~/backups/hyprbars-module/` pour pouvoir y revenir. Le module reste dans le dépôt, facultatif.
+
+**Incident.** Le plugin avait été déchargé à chaud ; Hyprland a ensuite planté (SEGV), relancé en mode sans échec, session et
+applications perdues. Récupération : vérification de la config (`Hyprland --verify-config`), arrêt de l'unité
+`wayland-wm@hyprland.desktop.service`, nouvelle connexion par SDDM. Leçon : **pas de déchargement de plugin à chaud**
+(`PROBLEMES-CONNUS.md` §7). `hyprctl dispatch exit` ne fonctionne plus en Lua (`hl.dsp.exit()` n'a pas suffi non plus en mode
+sans échec).
+
+**Restructuration du dépôt.**
+- Nouveau module **`tweaks`** : les réglages de la config Hyprland (clavier, curseur, XWayland, latence) sortent de `desktop`,
+  qui ne fait plus que Hyprland + Lucid + SDDM. On peut donc rejouer un réglage sans réinstaller Lucid.
+- Règle de cohérence : tout ce qui touche à l'interface (`tweaks`, `hyprbars`, variables NVIDIA de `hardware`) passe par
+  `need_hypr_config` et **ne fait rien si le bureau n'est pas installé**.
+- Défaut corrigé : `hypr_require` considérait comme chargé un `require` **commenté** (`-- require(...)`) ; il ne regarde plus que
+  les lignes actives. Ajout de `hypr_unrequire` et `hypr_session_env` (retrouve la session Hyprland depuis SSH).
+- `install.sh` : tableau des modules (`--list` affiche rôle et « interface »), un nom inconnu dans `--only/--skip` est refusé.
+- `HYPRBARS="remove"` retire le module sans décharger le plugin.
+- `tests/check.sh` : syntaxe, shellcheck, liste des modules, tests des helpers sur une configuration jetable.

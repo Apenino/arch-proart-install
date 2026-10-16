@@ -66,12 +66,8 @@ _nvidia_early_kms() {
 
 # Variables d'environnement Hyprland pour NVIDIA, dans un module Lua chargé par hyprland.lua.
 _nvidia_hyprland_env() {
-    local cfg="$HOME/.config/hypr/hyprland.lua" mod="$HOME/.config/hypr/modules/nvidia.lua"
-    if [[ ! -f $cfg ]]; then
-        ok "Pas de config Hyprland pour l'instant : réglages NVIDIA ignorés (relance ce module après 'desktop')"
-        return 0
-    fi
-    local want
+    local mod="$HOME/.config/hypr/modules/nvidia.lua" want
+    need_hypr_config "Environnement NVIDIA pour Hyprland (relance ce module après 'desktop')" || return 0
     want="$(cat <<'LUA'
 -- Réglages NVIDIA pour Hyprland (écrit par arch-proart-install)
 hl.env("LIBVA_DRIVER_NAME", "nvidia")
@@ -83,17 +79,12 @@ LUA
         ok "Inchangé : $mod"
     elif dry; then
         printf '\e[2m  [dry-run] écrirait %s\e[0m\n' "$mod"
-        return 0
     else
         install -d "$(dirname "$mod")"
         printf '%s\n' "$want" >"$mod"
         ok "Environnement NVIDIA pour Hyprland : $mod"
     fi
-    if ! grep -q 'require("modules.nvidia")' "$cfg"; then
-        backup "$cfg"
-        printf '\nrequire("modules.nvidia")\n' >>"$cfg"
-    fi
-    ok "Environnement NVIDIA pour Hyprland : $mod"
+    hypr_require modules.nvidia
 }
 
 _nvidia() {

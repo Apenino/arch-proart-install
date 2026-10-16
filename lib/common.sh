@@ -155,11 +155,41 @@ install_user_file() {
     ok "Installé : $dest"
 }
 
-# hypr_require MODULE : ajoute require("MODULE") à ~/.config/hypr/hyprland.lua s'il n'y est pas (sauvegarde avant).
+# --------------------------------------------------------------------------
+# Interface (Hyprland) : tout ce qui touche au bureau passe par ces helpers, pour ne rien modifier
+# sur une machine où l'interface n'est pas installée.
+# --------------------------------------------------------------------------
+HYPR_CFG="$HOME/.config/hypr/hyprland.lua"
+
+has_hypr_config() { [[ -f $HYPR_CFG ]]; }
+
+# Si l'interface est absente : dit pourquoi l'étape est ignorée et renvoie 1.
+# Usage : need_hypr_config "nom de l'étape" || return 0
+need_hypr_config() {
+    has_hypr_config && return 0
+    ok "$1 : pas de configuration Hyprland (module desktop non lancé), ignoré"
+    return 1
+}
+
+# Retrouve la session Hyprland en cours (si on lance le script depuis SSH ou un terminal, les variables ne sont
+# pas héritées). Renvoie 1 s'il n'y en a pas.
+hypr_session_env() {
+    [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]] && return 0
+    local rt="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" newest
+    [[ -d $rt/hypr ]] || return 1
+    newest="$(find "$rt/hypr" -mindepth 1 -maxdepth 1 -printf '%T@ %f\n' | sort -rn | head -1 | cut -d' ' -f2)"
+    [[ -n $newest ]] || return 1
+    export XDG_RUNTIME_DIR="$rt" HYPRLAND_INSTANCE_SIGNATURE="$newest"
+}
+
+# Ligne require("MODULE") active (non commentée) dans hyprland.lua ?
+_hypr_has_require() { grep -qE "^[[:space:]]*require\(\"${1//./\\.}\"\)" "$HYPR_CFG"; }
+
+# hypr_require MODULE : ajoute require("MODULE") à hyprland.lua s'il n'y est pas actif (sauvegarde avant).
 hypr_require() {
-    local mod=$1 cfg="$HOME/.config/hypr/hyprland.lua"
-    [[ -f $cfg ]] || return 0
-    if grep -qF "require(\"$mod\")" "$cfg"; then
+    local mod=$1
+    has_hypr_config || return 0
+    if _hypr_has_require "$mod"; then
         ok "hyprland.lua charge déjà $mod"
         return 0
     fi
@@ -167,9 +197,22 @@ hypr_require() {
         printf '\e[2m  [dry-run] ajouterait require("%s") à hyprland.lua\e[0m\n' "$mod"
         return 0
     fi
-    backup "$cfg"
-    printf '\nrequire("%s")\n' "$mod" >>"$cfg"
+    backup "$HYPR_CFG"
+    printf '\nrequire("%s")\n' "$mod" >>"$HYPR_CFG"
     ok "require(\"$mod\") ajouté à hyprland.lua"
+}
+
+# hypr_unrequire MODULE : retire la ligne require("MODULE") (sauvegarde avant).
+hypr_unrequire() {
+    local mod=$1
+    has_hypr_config && _hypr_has_require "$mod" || return 0
+    if dry; then
+        printf '\e[2m  [dry-run] retirerait require("%s") de hyprland.lua\e[0m\n' "$mod"
+        return 0
+    fi
+    backup "$HYPR_CFG"
+    sed -i -E "/^[[:space:]]*require\(\"${mod//./\\.}\"\)/d" "$HYPR_CFG"
+    ok "require(\"$mod\") retiré de hyprland.lua"
 }
 
 # write_root_file DEST [MODE] : écrit stdin dans DEST (root). Idempotent, sauvegarde l'ancien fichier.

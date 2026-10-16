@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Module desktop : Hyprland + shell Lucid (https://github.com/Sn3akyy1/lucid) + SDDM.
 # Lucid est cloné à une version précise et son commit est vérifié avant exécution.
+# Les réglages de la config Hyprland (clavier, XWayland...) sont dans le module tweaks.
 # shellcheck shell=bash
 
 LUCID_URL="https://github.com/Sn3akyy1/lucid.git"
@@ -55,31 +56,6 @@ _kitty_zsh() {
         run rm -f "$cf"; run rmdir --ignore-fail-on-non-empty "$HOME/.config/fish"
     fi
     return 0
-}
-
-# Lucid remplace le clavier par "us" : on remet celui du système.
-_hypr_tweaks() {
-    local input="$HOME/.config/hypr/modules/input.lua" plugins="$HOME/.config/hypr/modules/plugins.lua" kb
-    kb="${KB_LAYOUT:-$(localectl status 2>/dev/null | awk -F': *' '/X11 Layout/{print $2}')}"
-    if [[ -f $input && -n $kb && $kb != n/a ]]; then
-        run sed -i -E "s/^(\s*kb_layout\s*=\s*)\"[^\"]*\"/\1\"$kb\"/" "$input"
-        ok "Clavier Hyprland : $kb"
-    fi
-    # Curseur : pas de rotation/inclinaison (le zoom au secouement est conservé)
-    if [[ -f $plugins ]]; then
-        run sed -i -E 's/^(\s*mode\s*=\s*)"(rotate|tilt|stretch)"/\1"none"/' "$plugins"
-        ok "Curseur : rotation désactivée"
-    fi
-    # XWayland : lissage bilinéaire (sinon Steam et les applications X11 sont pixélisées à l'échelle fractionnaire)
-    if [[ ${XWAYLAND_SMOOTH:-yes} == yes && -f $HOME/.config/hypr/hyprland.lua ]]; then
-        install_user_file "$FILES/hypr/xwayland.lua" "$HOME/.config/hypr/modules/xwayland.lua"
-        hypr_require modules.xwayland
-    fi
-    # Latence de jeu (facultatif) : tearing autorisé + règle CS2, souris sans accélération libinput
-    if [[ ${GAMING_LATENCY:-no} == yes && -f $HOME/.config/hypr/hyprland.lua ]]; then
-        install_user_file "$FILES/hypr/gaming.lua" "$HOME/.config/hypr/modules/gaming.lua"
-        hypr_require modules.gaming
-    fi
 }
 
 _sddm() {
@@ -157,7 +133,6 @@ module_desktop() {
     _lucid_fetch
     _lucid_install
     _kitty_zsh
-    _hypr_tweaks
     _sddm
     _prune
 }
