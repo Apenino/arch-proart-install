@@ -114,6 +114,7 @@ une installation fraîche, le chiffrement LUKS. Lance toujours `./install.sh --d
 
 Tout ce qui a été fait sur la machine de référence, les pièges rencontrés et ce qui reste à faire :
 **[docs/HISTORIQUE.md](docs/HISTORIQUE.md)**. La fiche de la machine cible : **[docs/MATERIEL.md](docs/MATERIEL.md)**.
+Ce qui reste à corriger (rendu XWayland, CS2, etc.) : **[docs/PROBLEMES-CONNUS.md](docs/PROBLEMES-CONNUS.md)**.
 
 ## Structure
 
@@ -125,5 +126,6 @@ modules/                base, system, security, shell, apps, desktop, hardware, 
 files/                  fichiers installés tels quels (sysctl, règles audit, profil AppArmor, thème Plymouth, hyprbars)
 docs/HISTORIQUE.md     historique complet, décisions, pièges, pistes
 docs/MATERIEL.md       fiche matérielle de la machine cible
+docs/PROBLEMES-CONNUS.md  problèmes constatés, causes, état (à corriger / à re-tester / en amont)
 dotfiles/zsh/.zshrc    config zsh / oh-my-zsh (starship est ajouté par Lucid)
 ```

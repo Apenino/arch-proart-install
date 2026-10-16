@@ -412,3 +412,20 @@ gestionnaire de crash de Quickshell. Analyse (coredump, rapport de Quickshell, t
   noté un premier rejeu « killed » au bout de 3 minutes) ; (2) **toute mise à jour du pilote NVIDIA invalide ce cache** :
   la compilation est à refaire (rolling release : régulier) ; (3) mesurer plutôt que supposer : l'ananicy n'était pas en
   cause. Méthode : un échantillonneur (/proc, `nvidia-smi`) lancé pendant que l'utilisateur démarre le jeu.
+
+## 19. Audit du rendu des applications (XWayland ou Wayland) et technique de test
+
+L'audit complet des applications installées est dans `PROBLEMES-CONNUS.md` §1 : 11 applications en Wayland natif, 2 en
+XWayland (OnlyOffice, VLC) plus Steam et les jeux. Pour CS2, la résolution vidéo du jeu (3072×1728) est la taille logique
+d'un écran 4K à l'échelle 1,25 : le jeu est agrandi par Hyprland.
+
+**Technique** (réutilisable) : lancer une application sur un espace spécial caché pour l'inspecter sans déranger l'écran.
+- La forme qui fonctionne : `hl.dsp.exec_cmd("cmd", { workspace = "special:audit silent" })`. L'option `silent = true`
+  est refusée (`unknown effect 'silent'`) ; sans `silent`, l'espace spécial s'affiche et prend le focus un instant.
+- Lire `hyprctl clients -j` (`xwayland`, `class`, `pid`), puis fermer en envoyant `SIGTERM` au processus **et à ses
+  descendants** (`pgrep -P` récursif), jamais à une instance déjà ouverte avant le test.
+- Des exceptions : Lucid assigne Discord à `special:comms`, et VS Code (lanceur qui se détache) s'ouvre sur l'espace
+  courant malgré la règle.
+- Piège : `pkill -f motif` lancé par SSH peut se tuer lui-même (la ligne de commande de la session contient le motif) ;
+  utiliser `pkill -f '[m]otif'`.
+
