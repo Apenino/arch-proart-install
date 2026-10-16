@@ -554,3 +554,14 @@ Installé via **Prism Launcher** (dépôt `extra`) plutôt que le lanceur offici
 mods, Java choisi par instance. Java 21 (par défaut du système) et Java 25 installés pour les versions récentes. La connexion se fait dans le lanceur avec
 le compte Microsoft de l'utilisateur ; aucun compte n'est stocké par le script. Intégré au module `apps`. Pistes si le rendu paraît flou à l'échelle 1,25 :
 dans Prism, *Paramètres > Minecraft > Ajustements* : « GLFW natif » (Wayland natif) ; le lissage XWayland du §18 s'applique sinon.
+
+## 27. Apple Music (essai) et partages NAS en échec au démarrage (17/10/2026)
+
+**Apple Music** : pas de client officiel Linux. Clients tiers de l'AUR : `apple-music-bin` / `apple-music-desktop` (Electron, v2.1.2), `sidra-bin`, `cider-2` (payant),
+`cider` (abandonné). Essai de `apple-music-bin` (PKGBUILD relu : RPM des publications GitHub de `Alex313031/apple-music-desktop`, somme de contrôle fixée, aucun
+script d'installation). **Réserve** : il embarque Electron 28, ancien et sans correctifs de sécurité ; il charge le site d'Apple Music et demande l'identifiant
+Apple de l'utilisateur. **Non ajouté au script** tant que l'essai n'est pas concluant. Repli : Apple Music dans Firefox.
+
+**Partages NAS** : au démarrage suivant, sept montages `x-systemd.automount` sont passés en échec (« Mounting timed out », noyau : « Error connecting to socket »)
+alors que le NAS répondait ensuite (ping, port 445). Remis d'aplomb par `systemctl reset-failed` puis un accès au partage. Le délai `x-systemd.mount-timeout=10`
+est peut-être trop court si le NAS sort de veille (piste : 30 s) ; **non modifié**, à surveiller.
