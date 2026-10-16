@@ -58,6 +58,7 @@ adresse personnelle n'est dans le dépôt**.
 | `PRUNE` | nettoyage des paquets inutiles installés avec Lucid |
 | `KB_LAYOUT` | clavier Hyprland (sinon celui du système) |
 | `PLYMOUTH_THEME` | `arch-logo` (logo Arch, par défaut) ou `keep` pour garder le thème de la distribution |
+| `XWAYLAND_SMOOTH` | `yes` (défaut) lisse XWayland (Steam...) au lieu de le pixéliser à l'échelle fractionnaire |
 | `HYPRBARS` | `yes` active le module facultatif hyprbars |
 | `AUR_REVIEW` | `no` installe les paquets AUR sans afficher le `PKGBUILD` (lancement non interactif) ; garde `yes` par défaut |
 | `LUCID_INSTALL_FLAGS` | options de l'installeur de Lucid (ex. `-y --no-apps --no-hypr --no-wallpapers --no-plugins` sur une machine déjà réglée) |
@@ -106,6 +107,7 @@ une installation fraîche, le chiffrement LUKS. Lance toujours `./install.sh --d
 | Le script s'arrête sur « Commit Lucid inattendu » | l'auteur a déplacé un tag : relire le diff puis changer `LUCID_REF`/`LUCID_COMMIT` | HISTORIQUE §12 |
 | Paramètres noyau sans effet sous CachyOS | les entrées viennent de `sdboot-manage` (`LINUX_OPTIONS`), pas de `/etc/kernel/cmdline` | HISTORIQUE §11 |
 | Quickshell plante à l'ouverture d'une application | bogue connu d'icônes asynchrones (Qt 6.12 + Quickshell 0.3.2) | HISTORIQUE §17 |
+| Steam et les applications X11 sont pixélisés | échelle fractionnaire + filtrage XWayland par défaut (`XWAYLAND_SMOOTH`) | HISTORIQUE §18 |
 | Les écrans sont inversés dans Lucid | placement « auto » par ordre de connecteur | HISTORIQUE §14 |
 
 ## Historique et décisions

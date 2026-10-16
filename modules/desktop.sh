@@ -70,6 +70,11 @@ _hypr_tweaks() {
         run sed -i -E 's/^(\s*mode\s*=\s*)"(rotate|tilt|stretch)"/\1"none"/' "$plugins"
         ok "Curseur : rotation désactivée"
     fi
+    # XWayland : lissage bilinéaire (sinon Steam et les applications X11 sont pixélisées à l'échelle fractionnaire)
+    if [[ ${XWAYLAND_SMOOTH:-yes} == yes && -f $HOME/.config/hypr/hyprland.lua ]]; then
+        install_user_file "$FILES/hypr/xwayland.lua" "$HOME/.config/hypr/modules/xwayland.lua"
+        hypr_require modules.xwayland
+    fi
 }
 
 _sddm() {

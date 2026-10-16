@@ -155,6 +155,23 @@ install_user_file() {
     ok "Installé : $dest"
 }
 
+# hypr_require MODULE : ajoute require("MODULE") à ~/.config/hypr/hyprland.lua s'il n'y est pas (sauvegarde avant).
+hypr_require() {
+    local mod=$1 cfg="$HOME/.config/hypr/hyprland.lua"
+    [[ -f $cfg ]] || return 0
+    if grep -qF "require(\"$mod\")" "$cfg"; then
+        ok "hyprland.lua charge déjà $mod"
+        return 0
+    fi
+    if dry; then
+        printf '\e[2m  [dry-run] ajouterait require("%s") à hyprland.lua\e[0m\n' "$mod"
+        return 0
+    fi
+    backup "$cfg"
+    printf '\nrequire("%s")\n' "$mod" >>"$cfg"
+    ok "require(\"$mod\") ajouté à hyprland.lua"
+}
+
 # write_root_file DEST [MODE] : écrit stdin dans DEST (root). Idempotent, sauvegarde l'ancien fichier.
 write_root_file() {
     local dest=$1 mode=${2:-644} tmp

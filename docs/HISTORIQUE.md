@@ -379,3 +379,29 @@ gestionnaire de crash de Quickshell. Analyse (coredump, rapport de Quickshell, t
 3. `ausearch` lit son entrée standard quand elle est un tube (voir §13) ; `pacman -Rns` refuse `--print` (simulation :
    `pacman -Rs --print`, sans `-n`).
 
+## 18. Réglages du lendemain : échelle, espaces de travail, plugins, langue, shaders
+
+- **Steam « pixélisé »** : Steam est un client XWayland et les écrans sont à l'échelle fractionnaire 1,25 ; le compositeur
+  agrandit donc la fenêtre X11. `xwayland:use_nearest_neighbor` vaut `true` par défaut, ce qui donne un rendu
+  **pixélisé** (la description de l'option le dit). Passé à `false` (lissage bilinéaire) via `files/hypr/xwayland.lua`
+  (option `XWAYLAND_SMOOTH`). Alternative plus nette, non appliquée : `xwayland:force_zero_scaling = true` (c'est bien ce
+  nom en 0.56, pas `force_zero_scale`) avec `STEAM_FORCE_DESKTOPUI_SCALING=1.25` ; elle demande de rouvrir la session et
+  rend les autres applications X11 plus petites.
+- **« Le workspace de DP-3 est le 7 »** : par défaut Lucid est en mode **partagé** (un espace s'ouvre là où l'on est) :
+  les espaces 1 à 6 sont nés sur le premier écran et le 7 sur le second. Lucid a un mode **séparé** (chaque espace
+  appartient à un écran) : préférence `monitorWorkspaces` = `{"mode":"split","assign":{"1":<écran>,...}}` dans
+  `~/.config/quickshell/lucidprefs/prefs.json`. Lucid **surveille ce fichier** : il régénère seul `lucid-monitors.lua`
+  et recharge Hyprland. Choix fait : 1 à 5 sur l'écran principal, 6 à 10 sur l'autre. Un écran garde l'espace qu'il
+  affichait : il faut le faire passer sur le nouveau (`hl.dsp.focus({ workspace = 1 })`).
+- **Un plugin perdu au démarrage** (corrigé) : `hyprbars-plugin.sh` et `cursor-plugin.sh` de Lucid partageaient le même
+  fichier de verrou ; lancés en même temps au démarrage, le second **quittait sans rien dire** et son plugin n'était pas
+  chargé (ici le plugin de curseur). Chaque script a maintenant son verrou. Piège plus général : un verrou partagé avec
+  `flock -n ... || exit 0` transforme une collision en échec silencieux.
+- **Langue de Lucid** : aucune traduction (pas de `qsTr`, pas de fichiers `.qm`) ; seules les dates suivent la locale
+  et l'OCR a sa langue. Le menu est en anglais, sans option.
+- **Shaders très longs (CS2, Tiny Glade)** — constats : le GPU est bien utilisé (seul ICD Vulkan : NVIDIA, pas de
+  rasteriseur logiciel) ; la compilation des shaders est **par nature un travail de CPU** ; `amd-pstate-epp`, 32 threads,
+  5,7 GHz. Piste concrète : **`ananicy-cpp`** classe `steam` en « Launcher » = `nice 16` + classe d'E/S `idle`, hérités par
+  ses sous-processus, donc probablement le rejeu `fossilize_replay` ; le journal de Steam note ce rejeu « killed » (code
+  -10) pour CS2 après 3 minutes. À mesurer avec un enregistreur (priorités, processeurs, débit disque) pendant un lancement.
+

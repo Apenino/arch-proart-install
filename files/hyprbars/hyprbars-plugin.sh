@@ -173,8 +173,10 @@ case "${1:-}" in
     status) status ;;
     remove) remove ;;
     ensure)
-        # one at a time: a second login session must not compile alongside
-        exec 9>"$DIR/.lock"
+        # un à la fois : une seconde session ne doit pas compiler en parallèle. Verrou PROPRE à hyprbars : le script
+        # de Lucid pour son plugin de curseur utilise "$DIR/.lock" dans le même dossier et, au démarrage, les deux
+        # tournent en même temps ; avec un verrou commun, le second quittait sans rien dire (plugin non chargé).
+        exec 9>"$DIR/.lock-$NAME"
         flock -n 9 || exit 0
         ensure
         ;;
