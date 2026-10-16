@@ -42,6 +42,9 @@ module_apps() {
     pkg_or_aur proton-pass proton-pass-bin
     pkg_or_aur onlyoffice-bin onlyoffice-bin
     pkg_or_aur proton-mail proton-mail-bin
+    # Selawik : équivalent libre de Segoe UI (mêmes dimensions), pour les pages Microsoft ; Calibri a déjà Carlito
+    pkg_or_aur ttf-selawik ttf-selawik
+    install_user_file "$FILES/fontconfig/60-segoe-selawik.conf" "$HOME/.config/fontconfig/conf.d/60-segoe-selawik.conf"
 
     _mpv_setup
 

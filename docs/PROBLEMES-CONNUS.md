@@ -127,3 +127,11 @@ expérimental de Hyprland : non tenté.
 saturées et plus belles** ; VLC est ensuite désinstallé. mpv décode avec `nvdec` et rend avec `gpu-next`. Technique de comparaison :
 VLC piloté par MPRIS (`busctl --user`, position et `Pause`/`Play`), mpv par son socket IPC (`--input-ipc-server`, `--start=<position>`),
 lancé avec `hyprctl dispatch "hl.dsp.exec_cmd(...)"` (et non `hyprctl eval`, qui accepte la commande sans l'exécuter).
+
+## 9. Polices des pages Microsoft différentes sous Linux — `corrigé` (Segoe UI → Selawik)
+
+Segoe UI et Aptos sont propriétaires et absentes de Linux : `Segoe UI` retombait sur Adwaita Sans, `Aptos` sur Noto Sans (`Calibri` est
+déjà bien remplacée par Carlito, aux mêmes dimensions). **Correction** : paquet AUR `ttf-selawik` (PKGBUILD relu : un zip GitHub
+épinglé au commit `11fb355…`, copie des seuls `.ttf` et de la licence) + règle `fontconfig` `files/fontconfig/60-segoe-selawik.conf`.
+Selawik ressemble à Segoe UI sans être identique. **Reste** : Aptos n'a pas de remplaçant libre. La vraie Segoe UI s'obtient en copiant les
+fichiers d'une installation Windows possédée (question de licence, non fait).
