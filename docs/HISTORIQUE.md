@@ -503,3 +503,17 @@ Audit en lecture seule : aucune unité en échec, SSD sain (SMART OK, 1 % d'usur
   des bogues ; le second SEGV de Hyprland (09:44) est l'instance en mode sans échec, cf. §21.
 - **À surveiller** : Quickshell occupe 2,6 Go de mémoire après 4,2 h de session (fuite possible, non confirmée).
 
+## 23. Mémoire de Quickshell : mesures (16/10/2026)
+
+Hier : 2,6 Go après 4,2 h de session (précédée d'un plantage et d'un redémarrage sur place). Mesures du jour, session propre :
+- **Au repos** : 650 → 708 Mo dans les 90 premières secondes (démarrage), puis plat (704 à 714 Mo) pendant 10 min ; 6 fenêtres, processus
+  enfants stables (107 Mo). Pas de fuite continue à l'inactivité.
+- **Ouvrir et fermer 20 fois une fenêtre** (kitty sur un espace spécial caché) : +4 Mo au total, plateau dès le 5e cycle. Le cycle de vie
+  d'une fenêtre n'est donc pas la cause. Limite du test : fenêtres jamais focalisées, donc ni icône de fenêtre active ni aperçu.
+- **Usage normal** (Nautilus, lecture d'un film, Firefox) : 709 → 765 Mo en 18 min, puis plat. Hausse modérée, sans lien établi.
+- **Pistes restantes** (non testées) : aperçus de fenêtres (`ScreencopyView` dans `Workspaces.qml`, `StackPopup.qml`, `Switcher.qml`),
+  chargements d'icônes de la fenêtre active, fonds d'écran animés, miniatures du presse-papiers. Les 2,6 Go d'hier restent inexpliqués.
+- Méthode : échantillonneur lisant `/proc/<pid>/smaps_rollup` toutes les 30 s ; test détaché (`setsid nohup`) avec PID fourni par
+  `hyprctl clients -j` (jamais `pkill -f` sur un motif présent dans sa propre ligne de commande). Piège : plusieurs copies du script
+  lancées en parallèle se ferment mutuellement leurs fenêtres de test.
+
