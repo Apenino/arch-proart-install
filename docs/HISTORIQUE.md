@@ -1,8 +1,12 @@
 # Historique et état de la machine de référence
 
-Ce document résume **tout ce qui a été fait, décidé et appris** pendant la mise au point de la machine
-de référence (surnommée *Maverick*), dont est tiré ce dépôt. Il sert à reprendre le projet sans la
+Ce document résume **tout ce qui a été fait, décidé et appris** pendant la mise au point des deux machines
+(le portable *Maverick*, première machine de référence, puis le PC de bureau *ProArt*, devenu la machine de travail à partir de §10), dont est tiré ce dépôt. Il sert à reprendre le projet sans la
 conversation d'origine : pourquoi chaque réglage existe, ce qui a été testé, ce qui ne l'a pas été.
+
+**Comment le lire** : §1 à §9 = la machine de référence et ses choix ; §10 à §16 = premier lancement réel sur ProArt et ses défauts ;
+§17 à §20 = Quickshell, échelle d'écran, XWayland, shaders, latence ; §21 à §28 = restructuration du dépôt, audit, mesures, nettoyage.
+L'état courant des défauts est dans [PROBLEMES-CONNUS.md](PROBLEMES-CONNUS.md) ; la section §24 (« État en fin de séance ») liste les suites.
 
 > Le dépôt est public : aucune adresse IP, clé, e-mail ou nom de machine personnelle n'y figure.
 > Les valeurs propres à une installation vont dans `config.env` (ignoré par git).
@@ -539,6 +543,10 @@ sont conservées.
 4. `sudo` : décider entre sans mot de passe, délai d'une heure journalisé, ou programme à actions fixes.
 5. Mémoire de Quickshell et crash d'icônes : contournement `asynchronous: false` dans `ActiveWindow.qml`, non testé. Rapports amont non publiés (décision de l'utilisateur).
 6. Compiler un jour la liste des bogues d'interface restants avec l'utilisateur (aucun nouveau signalé ce jour).
+7. Épingler `oh-my-zsh` sur un commit (seul clone non épinglé du script, voir §28).
+8. Idée, non lancée : module facultatif `monitor` (base de référence root des points d'accroche, ports en écoute et exécutables hors paquet, comparaison
+   par minuterie systemd, alerte sans action automatique). Voir la discussion du 17/10/2026 : surtout pas de liste brute de noms de processus (trop de bruit).
+9. Piste Apple Music : Sidra (non essayé) ou Firefox ; mpv remplace VLC (HDR).
 
 
 ## 25. Coins de Lucid Settings verrouillés : ordre de chargement des modules Hyprland (16/10/2026)

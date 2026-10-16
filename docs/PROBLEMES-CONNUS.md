@@ -3,6 +3,25 @@
 Liste vivante : ce qui a été constaté sur la machine cible, la cause connue ou supposée, et ce qu'il reste à faire.
 Chaque entrée indique son **état** : `à corriger`, `à re-tester`, `contourné`, `en amont` (bogue d'un autre projet).
 
+## Vue d'ensemble
+
+| # | Sujet | État |
+|---|---|---|
+| 1 | Applications X11 (XWayland) pixélisées ou floues à l'échelle 1,25 | contourné (lissage) ; correctif net optionnel |
+| 2 | CS2 : menus pixélisés | résolu |
+| 3 | Compilation des shaders très longue (NVIDIA) | en amont / normal |
+| 4 | Quickshell plante à l'ouverture d'une application | en amont |
+| 5 | Lucid sans traduction | en amont |
+| 6 | Latence de jeu (CS2) | désactivé, gain non démontré |
+| 7 | Décharger un plugin Hyprland à chaud plante la session | contourné (règle de travail) |
+| 8 | Vidéos HDR ternes dans VLC | corrigé (mpv) |
+| 9 | Polices des pages Microsoft | corrigé (Selawik) |
+| 10 | Coins/ombre verrouillés dans Lucid Settings | corrigé et vérifié |
+| 11 | Apple Music (client tiers AUR) ne démarre pas | abandonné |
+
+États possibles : `à corriger`, `à re-tester`, `contourné`, `corrigé`, `en amont` (bogue d'un autre projet), `abandonné`.
+La dernière section, « À surveiller », regroupe ce qui n'a pas été reproduit.
+
 ## 1. Rendu pixélisé ou flou des applications X11 (XWayland) — `contourné` (net : correctif optionnel)
 
 **Contexte** : écrans 4K à l'échelle **1,25**. Les applications Wayland natives se mettent à l'échelle elles-mêmes (rendu net) ;
@@ -102,13 +121,6 @@ et **toutes les applications ouvertes ont été perdues**. Rien n'était cassé 
 fichiers, puis il faut **rouvrir la session**. Pour sortir du mode sans échec : `systemctl --user stop wayland-wm@hyprland.desktop.service`
 (retour à SDDM). Voir `HISTORIQUE.md` §21.
 
-## À surveiller (non reproduit)
-
-- Après un crash de Quickshell, des processus enfants restent en doublon (clipboard stocké deux fois) : redémarrer la
-  session règle le problème.
-- Au lancement d'une application dans un espace de travail spécial (Lucid assigne Discord à `special:comms`), l'espace
-  spécial peut s'afficher et prendre le focus un instant.
-
 ## 8. Vidéos HDR ternes dans VLC — `corrigé` (lecteur remplacé par mpv)
 
 **Constat** : les vidéos HDR paraissaient délavées dans VLC. **Mesure** : l'EDID des deux Dell U2718Q ne contient **aucun bloc HDR**
@@ -154,3 +166,9 @@ Widevine, nécessaire à la lecture ; `--cdm-info` donne la même erreur). Le r�
 probable, non confirmée : Electron 28 trop ancien pour le service de composants actuel. Paquet retiré le 17/10/2026. Pistes : `sidra-bin` (non essayé),
 ou Apple Music dans Firefox (Widevine déjà géré).
 
+## À surveiller (non reproduit)
+
+- Après un crash de Quickshell, des processus enfants restent en doublon (clipboard stocké deux fois) : redémarrer la
+  session règle le problème.
+- Au lancement d'une application dans un espace de travail spécial (Lucid assigne Discord à `special:comms`), l'espace
+  spécial peut s'afficher et prendre le focus un instant.

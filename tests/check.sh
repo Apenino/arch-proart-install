@@ -8,11 +8,11 @@ fail=0
 check() { if "$@"; then printf '  ok   %s\n' "${*:2}"; else printf '  ÉCHEC %s\n' "${*:2}"; fail=1; fi; }
 
 echo "== syntaxe"
-for f in install.sh lib/common.sh modules/*.sh files/hyprbars/*.sh tests/check.sh; do check bash -n "$f"; done
+for f in install.sh lib/common.sh modules/*.sh files/hyprbars/*.sh tests/check.sh tools/*.sh; do check bash -n "$f"; done
 
 echo "== shellcheck"
 if command -v shellcheck >/dev/null; then
-    check shellcheck -x -e SC1091 install.sh lib/common.sh modules/*.sh files/hyprbars/*.sh tests/check.sh
+    check shellcheck -x -e SC1091 install.sh lib/common.sh modules/*.sh files/hyprbars/*.sh tests/check.sh tools/*.sh
 else
     echo "  (shellcheck absent : ignoré)"
 fi

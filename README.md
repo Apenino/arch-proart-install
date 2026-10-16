@@ -70,6 +70,17 @@ adresse personnelle n'est dans le dépôt**.
 | `LUCID_REF` / `LUCID_COMMIT` | commit de Lucid épinglé (le hash est vérifié après le clonage) |
 | `EXTRA_PACKAGES` | paquets supplémentaires des dépôts (ex. `solaar`) |
 
+## Documentation
+
+| Fichier | Contenu |
+|---|---|
+| [docs/HISTORIQUE.md](docs/HISTORIQUE.md) | tout ce qui a été fait, décidé et appris, dans l'ordre, avec les pièges et les mesures |
+| [docs/PROBLEMES-CONNUS.md](docs/PROBLEMES-CONNUS.md) | défauts constatés, cause, état (tableau récapitulatif en tête) |
+| [docs/MATERIEL.md](docs/MATERIEL.md) | fiche de la machine cible |
+| [CHANGELOG.md](CHANGELOG.md) | évolutions du dépôt, version par version |
+| `tests/check.sh` | contrôles sans effet sur la machine (syntaxe, shellcheck, helpers) |
+| `tools/` | outils de mesure (mémoire de Quickshell) |
+
 ## Choix de sécurité à connaître
 
 - **SSH** : root interdit, `AllowUsers` limité à ton compte, 3 essais maximum. Le mot de passe n'est coupé
@@ -81,7 +92,7 @@ adresse personnelle n'est dans le dépôt**.
   sur le noyau CachyOS, sans lui, `sshd` ne peut pas signaler « prêt » à systemd et reste en `activating`.
 - **Sauvegardes** : les fichiers remplacés sont copiés dans `/var/backups/arch-proart-install/` (jamais à côté de
   l'original : certains dossiers, comme `/etc/apparmor.d/`, sont lus en entier par leur service).
-- **`sudo` sans mot de passe** : le script n'y touche pas.
+- **`sudo` sans mot de passe** : le script n'y touche pas (ni pour l'activer ni pour le retirer).
 - **Démarrage** : sans menu visible, maintiens la **barre d'espace** au démarrage pour l'afficher (noyau de
   secours). Les paramètres noyau sont gérés pour **systemd-boot** et **GRUB** ; avec un autre bootloader
   (Limine...), le script affiche les paramètres à ajouter à la main.
