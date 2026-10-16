@@ -547,3 +547,10 @@ Cause trouvée par le fichier d'état de Lucid (`lucid-settings-status.json`, cl
 `lucid-look` en fin de `hyprland.lua`, après `settings`. Correction par `hypr_require_before` (module `tweaks`, test dans `tests/check.sh`),
 sauvegarde `~/backups/hyprland.lua.avant-ordre-lucid-look`. Règle à retenir : **dans `hyprland.lua`, le dernier module chargé gagne** ; tout ce que
 Lucid Settings pilote (Windows, Input) doit venir après les modules qui posent des valeurs par défaut. Voir `PROBLEMES-CONNUS.md` §10.
+
+## 26. Minecraft Java (17/10/2026)
+
+Installé via **Prism Launcher** (dépôt `extra`) plutôt que le lanceur officiel (absent des dépôts et de l'AUR consultée) : plusieurs instances et versions,
+mods, Java choisi par instance. Java 21 (par défaut du système) et Java 25 installés pour les versions récentes. La connexion se fait dans le lanceur avec
+le compte Microsoft de l'utilisateur ; aucun compte n'est stocké par le script. Intégré au module `apps`. Pistes si le rendu paraît flou à l'échelle 1,25 :
+dans Prism, *Paramètres > Minecraft > Ajustements* : « GLFW natif » (Wayland natif) ; le lissage XWayland du §18 s'applique sinon.

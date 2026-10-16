@@ -38,7 +38,7 @@ ils s'ignorent et le disent. `./tests/check.sh` vérifie la syntaxe, shellcheck 
 | `system` | Btrfs (COW + checksums + `noatime` + zstd), snapshots **snapper** sur sous-volumes dédiés + `snap-pac`, `fstrim`, scrub mensuel, `paccache`, `fwupd`, `reflector` (Arch), profils d'énergie + `thermald` sur portable, nom d'hôte, masquage des unités TPM NvPCR en échec |
 | `security` | `sshd` durci, pare-feu `ufw` (SSH depuis le réseau local seulement), `fail2ban`, `auditd`, AppArmor (profil `sshd`), sysctl, LLMNR/mDNS coupés |
 | `shell` | zsh + oh-my-zsh (thème `robbyrussell`) + plugins système autosuggestions et syntax-highlighting ; le prompt **starship** et kitty viennent de Lucid |
-| `apps` | Firefox, Steam (+ Vulkan 32 bits selon le GPU), Blender, Discord, mpv (lecteur vidéo par défaut), Obsidian, VS Code (Code-OSS), Proton VPN / Pass / Mail, OnlyOffice |
+| `apps` | Firefox, Steam (+ Vulkan 32 bits selon le GPU), Blender, Discord, Prism Launcher (Minecraft Java) + Java 21/25, mpv (lecteur vidéo par défaut), Obsidian, VS Code (Code-OSS), Proton VPN / Pass / Mail, OnlyOffice |
 | `desktop` | Hyprland + [Lucid](https://github.com/Sn3akyy1/lucid) avec son look complet (starship, kitty) — version **épinglée et vérifiée par commit** —, SDDM avec le thème Lucid, nettoyage sûr des paquets inutiles |
 | `tweaks` | *(interface)* réglages de la config Hyprland, rejouables sans réinstaller Lucid : clavier du système, curseur sans rotation, XWayland lissé, latence de jeu (facultative, désactivée) |
 | `hardware` | *(interface en partie)* microcode CPU ; **pilote NVIDIA open** (RTX 50 : indispensable), paramètres noyau `nvidia-drm`, chargement précoce des modules, variables d'environnement Hyprland |

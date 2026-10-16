@@ -34,6 +34,9 @@ module_apps() {
     ((${#vk[@]})) && pac_install "${vk[@]}"
 
     pac_install firefox steam blender discord mpv obsidian code proton-vpn-gtk-app
+    # Minecraft Java : Prism Launcher (open source, plusieurs versions et mods) + Java 21 et 25 (versions récentes du jeu). Connexion avec
+    # le compte Microsoft de l'utilisateur dans le lanceur : le jeu doit être possédé.
+    pac_install prismlauncher jre21-openjdk jre25-openjdk
     # Paquets supplémentaires choisis dans config.env (ex. solaar pour du matériel Logitech)
     # shellcheck disable=SC2086
     [[ -n ${EXTRA_PACKAGES:-} ]] && pac_install $EXTRA_PACKAGES
