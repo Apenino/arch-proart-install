@@ -136,7 +136,7 @@ déjà bien remplacée par Carlito, aux mêmes dimensions). **Correction** : paq
 Selawik ressemble à Segoe UI sans être identique. **Reste** : Aptos n'a pas de remplaçant libre. La vraie Segoe UI s'obtient en copiant les
 fichiers d'une installation Windows possédée (question de licence, non fait).
 
-## 10. Lucid Settings > Windows : l'arrondi des coins (et l'ombre) reste verrouillé — `corrigé` (ordre de chargement)
+## 10. Lucid Settings > Windows : l'arrondi des coins (et l'ombre) reste verrouillé — `corrigé et vérifié` (ordre de chargement)
 
 **Constat** : dans Lucid Settings, la réglette des coins (`decoration.rounding`) est inutilisable ; « Reset » la débloque, puis un changement de
 thème la reverrouille.
@@ -145,5 +145,4 @@ thème la reverrouille.
 `hyprland.lua`, donc après `require("modules.settings")` ; Hyprland applique les modules dans l'ordre et `lucid-look.lua` (arrondi 25, ombre 20)
 écrase ce que Settings a écrit. Ce n'est pas une modification de ce dépôt (aucune référence à `lucid-look` dans le script avant la correction).
 **Correction** : `lucid-look` est chargé **avant** `settings` (`hypr_require_before`, appelé par le module `tweaks`). Résultat : liste `overridden`
-vide, arrondi 10 appliqué. **À re-tester** : le comportement après un changement de thème (le thème réécrit ses valeurs par défaut ; ordre
-désormais favorable à Settings).
+vide, arrondi 10 appliqué. **Vérifié par l'utilisateur après un changement de thème** : la réglette reste libre, la liste `overridden` reste vide.
