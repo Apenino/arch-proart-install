@@ -134,6 +134,7 @@ config.env.example      options personnalisables (copier en config.env)
 lib/common.sh           journalisation, --dry-run, détection matériel/bootloader, helpers paquets et fichiers
 modules/                base, system, security, shell, apps, desktop, tweaks, hardware, hyprbars (facultatif), boot
 tests/check.sh          contrôles sans effet : syntaxe, shellcheck, modules, helpers Hyprland
+tools/                  outils de mesure (mémoire de Quickshell : échantillonneur, test d'ouverture/fermeture de fenêtres)
 files/                  fichiers installés tels quels (sysctl, règles audit, profil AppArmor, thème Plymouth, hyprbars)
 docs/HISTORIQUE.md     historique complet, décisions, pièges, pistes
 docs/MATERIEL.md       fiche matérielle de la machine cible

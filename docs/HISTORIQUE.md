@@ -517,3 +517,26 @@ Hier : 2,6 Go après 4,2 h de session (précédée d'un plantage et d'un redéma
   `hyprctl clients -j` (jamais `pkill -f` sur un motif présent dans sa propre ligne de commande). Piège : plusieurs copies du script
   lancées en parallèle se ferment mutuellement leurs fenêtres de test.
 
+## 24. État en fin de séance (16/10/2026) et suite
+
+**Machines.** ProArt (CachyOS, Ryzen 9 9950X3D, RTX 5080) est la machine de travail ; Maverick (portable) est alignée sur le dépôt (`tweaks`,
+`security`). Le dépôt se pousse depuis ProArt en SSH avec une clé de déploiement (empreinte de GitHub vérifiée contre `api.github.com/meta`).
+`sudo` : le fichier `10-nopasswd` a été supprimé le 16/10, puis est réapparu sur ProArt après un redémarrage (remis par l'utilisateur, non
+vérifié). Piste évoquée, non faite : délai `timestamp_timeout=60` + `log_output`, ou un programme racine à actions fixes (`proart-admin`).
+
+**Fait aujourd'hui** : lissage XWayland, latence de jeu mesurée puis désactivée (§21), hyprbars retiré (§21), restructuration du dépôt et tests,
+audit complet (§22), mpv à la place de VLC (HDR, `PROBLEMES-CONNUS.md` §8), Selawik pour Segoe UI (§9), `copy_on_select clipboard` dans kitty
+(`~/.config/kitty/kitty.conf`, à refaire si Lucid réécrit ce fichier), mémoire de Quickshell mesurée (§23).
+
+**Nettoyage de fin de séance** : processus de mesure arrêtés, fichiers temporaires supprimés, cache de pacman allégé (paquets désinstallés et
+dossiers de téléchargement interrompus retirés), aucun orphelin, aucune unité en échec. Les sauvegardes (`~/backups/`, `/var/backups/arch-proart-install/`)
+sont conservées.
+
+**Pour la suite** :
+1. Suivi passif de la mémoire de Quickshell sur une journée entière (service utilisateur, un relevé toutes les 5 min) ; piste : aperçus de fenêtres.
+2. CS2 : essayer le rendu 3840×2160 natif (`xwayland:force_zero_scaling`) pour savoir si le tearing s'active ; réessayer la latence un réglage à la fois.
+3. Écran : chercher une option HDR dans le menu des Dell U2718Q ; le vrai HDR suppose que l'écran l'annonce, puis le mode expérimental de Hyprland.
+4. `sudo` : décider entre sans mot de passe, délai d'une heure journalisé, ou programme à actions fixes.
+5. Mémoire de Quickshell et crash d'icônes : contournement `asynchronous: false` dans `ActiveWindow.qml`, non testé. Rapports amont non publiés (décision de l'utilisateur).
+6. Compiler un jour la liste des bogues d'interface restants avec l'utilisateur (aucun nouveau signalé ce jour).
+
