@@ -540,3 +540,10 @@ sont conservées.
 5. Mémoire de Quickshell et crash d'icônes : contournement `asynchronous: false` dans `ActiveWindow.qml`, non testé. Rapports amont non publiés (décision de l'utilisateur).
 6. Compiler un jour la liste des bogues d'interface restants avec l'utilisateur (aucun nouveau signalé ce jour).
 
+
+## 25. Coins de Lucid Settings verrouillés : ordre de chargement des modules Hyprland (16/10/2026)
+
+Cause trouvée par le fichier d'état de Lucid (`lucid-settings-status.json`, clé `overridden`) puis dans l'installeur de Lucid : il ajoute
+`lucid-look` en fin de `hyprland.lua`, après `settings`. Correction par `hypr_require_before` (module `tweaks`, test dans `tests/check.sh`),
+sauvegarde `~/backups/hyprland.lua.avant-ordre-lucid-look`. Règle à retenir : **dans `hyprland.lua`, le dernier module chargé gagne** ; tout ce que
+Lucid Settings pilote (Windows, Input) doit venir après les modules qui posent des valeurs par défaut. Voir `PROBLEMES-CONNUS.md` §10.

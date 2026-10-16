@@ -215,6 +215,25 @@ hypr_unrequire() {
     ok "require(\"$mod\") retiré de hyprland.lua"
 }
 
+# hypr_require_before MODULE AUTRE : fait charger MODULE avant AUTRE (les modules s'appliquent dans l'ordre, le dernier gagne).
+# Sans effet si l'un des deux manque ou si l'ordre est déjà bon.
+hypr_require_before() {
+    local mod=$1 other=$2 a b
+    has_hypr_config || return 0
+    _hypr_has_require "$mod" && _hypr_has_require "$other" || return 0
+    a="$(grep -nE "^[[:space:]]*require\(\"${mod//./\\.}\"\)" "$HYPR_CFG" | head -1 | cut -d: -f1)"
+    b="$(grep -nE "^[[:space:]]*require\(\"${other//./\\.}\"\)" "$HYPR_CFG" | head -1 | cut -d: -f1)"
+    if ((a < b)); then ok "$mod est déjà chargé avant $other"; return 0; fi
+    if dry; then
+        printf '\e[2m  [dry-run] placerait require("%s") avant require("%s")\e[0m\n' "$mod" "$other"
+        return 0
+    fi
+    backup "$HYPR_CFG"
+    sed -i -E "/^[[:space:]]*require\(\"${mod//./\\.}\"\)/d" "$HYPR_CFG"
+    sed -i -E "0,/^[[:space:]]*require\(\"${other//./\\.}\"\)/ s//require(\"$mod\")\n&/" "$HYPR_CFG"
+    ok "require(\"$mod\") placé avant require(\"$other\")"
+}
+
 # write_root_file DEST [MODE] : écrit stdin dans DEST (root). Idempotent, sauvegarde l'ancien fichier.
 write_root_file() {
     local dest=$1 mode=${2:-644} tmp

@@ -44,6 +44,16 @@ tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
     grep -q 'modules.a' "$HYPR_CFG" || { echo "  ÉCHEC autres lignes conservées"; exit 1; }
     echo "  ok   hypr_require / hypr_unrequire"
 
+    # ordre de chargement : lucid-look doit passer avant settings
+    printf '%s\n' 'require("modules.settings")' 'require("modules.nvidia")' 'require("modules.lucid-look")' >"$HYPR_CFG"
+    hypr_require_before modules.lucid-look modules.settings >/dev/null
+    [[ "$(grep -n 'lucid-look' "$HYPR_CFG" | cut -d: -f1)" -lt "$(grep -n 'modules.settings' "$HYPR_CFG" | cut -d: -f1)" ]] \
+        || { echo "  ÉCHEC ordre look/settings"; exit 1; }
+    [[ "$(grep -c 'require' "$HYPR_CFG")" == 3 ]] || { echo "  ÉCHEC lignes conservées"; exit 1; }
+    hypr_require_before modules.lucid-look modules.settings >/dev/null
+    [[ "$(grep -c 'lucid-look' "$HYPR_CFG")" == 1 ]] || { echo "  ÉCHEC ordre idempotent"; exit 1; }
+    echo "  ok   hypr_require_before"
+
     rm -f "$HYPR_CFG"
     need_hypr_config test >/dev/null && { echo "  ÉCHEC sans interface"; exit 1; }
     echo "  ok   sans interface : étapes ignorées"

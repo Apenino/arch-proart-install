@@ -2,6 +2,7 @@
 # Module tweaks : réglages de la configuration Hyprland posée par Lucid. Rejouable seul, sans réinstaller Lucid :
 #   ./install.sh --only tweaks
 # Ne fait rien si l'interface n'est pas installée (pas de ~/.config/hypr/hyprland.lua).
+#   - ordre de chargement look/Settings (réglages de Lucid Settings > Windows pris en compte) ;
 #   - clavier du système (Lucid met "us") ;  - curseur sans rotation ;
 #   - XWayland lissé (XWAYLAND_SMOOTH) ;     - latence de jeu, facultatif (GAMING_LATENCY).
 # shellcheck shell=bash
@@ -41,9 +42,17 @@ _tweak_gaming() {
     fi
 }
 
+# L'installeur de Lucid ajoute require("modules.lucid-look") à la FIN de hyprland.lua, donc après modules.settings : le look
+# (arrondi 25, ombre) écrase alors ce que l'utilisateur règle dans Lucid Settings > Windows, qui affiche les lignes comme verrouillées
+# (« overridden » dans $XDG_RUNTIME_DIR/lucid-settings-status.json). On remet le look avant Settings.
+_tweak_lucid_order() {
+    hypr_require_before modules.lucid-look modules.settings
+}
+
 module_tweaks() {
     need_hypr_config "Réglages Hyprland" || return 0
     info "Réglages Hyprland"
+    _tweak_lucid_order
     _tweak_keyboard
     _tweak_cursor
     _tweak_xwayland
