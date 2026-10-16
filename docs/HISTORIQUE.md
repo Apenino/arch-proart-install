@@ -399,9 +399,16 @@ gestionnaire de crash de Quickshell. Analyse (coredump, rapport de Quickshell, t
   `flock -n ... || exit 0` transforme une collision en échec silencieux.
 - **Langue de Lucid** : aucune traduction (pas de `qsTr`, pas de fichiers `.qm`) ; seules les dates suivent la locale
   et l'OCR a sa langue. Le menu est en anglais, sans option.
-- **Shaders très longs (CS2, Tiny Glade)** — constats : le GPU est bien utilisé (seul ICD Vulkan : NVIDIA, pas de
-  rasteriseur logiciel) ; la compilation des shaders est **par nature un travail de CPU** ; `amd-pstate-epp`, 32 threads,
-  5,7 GHz. Piste concrète : **`ananicy-cpp`** classe `steam` en « Launcher » = `nice 16` + classe d'E/S `idle`, hérités par
-  ses sous-processus, donc probablement le rejeu `fossilize_replay` ; le journal de Steam note ce rejeu « killed » (code
-  -10) pour CS2 après 3 minutes. À mesurer avec un enregistreur (priorités, processeurs, débit disque) pendant un lancement.
-
+- **Shaders très longs (CS2, Tiny Glade)** : une première hypothèse (priorité trop basse) a été **réfutée par la mesure**.
+  `ananicy-cpp` classe bien `steam` en « Launcher » (`nice 16`, E/S `idle`, hérités par les sous-processus), mais un
+  enregistreur (priorités, %CPU, disque, GPU, toutes les 3 s) a montré, pendant le rejeu de CS2 : **32 processus
+  `fossilize_replay` (un par thread) à 100 % d'un cœur chacun, 97 % du CPU au total**, disque quasi inactif (0-10 Mo/s),
+  GPU à 0 % d'utilisation (la VRAM, ~5,6 Go, sert aux contextes Vulkan). La priorité ne gêne donc rien : aucune
+  concurrence sur les cœurs. Le temps est celui de la charge : Steam rejoue un cache de pipelines Vulkan d'environ
+  **1,7 million de pipelines** pour CS2 (visible dans son journal : `Still replaying 730 (7%, 113554/1579462)`), à
+  ~650 pipelines/s sur un Ryzen 9 9950X3D, soit **environ 40 minutes** au premier lancement. Le GPU n'y participe pas :
+  **les pilotes NVIDIA compilent les pipelines sur le CPU, par conception**.
+  Conséquences : (1) laisser terminer une fois, le résultat est gardé dans le cache du pilote (le journal de Steam avait
+  noté un premier rejeu « killed » au bout de 3 minutes) ; (2) **toute mise à jour du pilote NVIDIA invalide ce cache** :
+  la compilation est à refaire (rolling release : régulier) ; (3) mesurer plutôt que supposer : l'ananicy n'était pas en
+  cause. Méthode : un échantillonneur (/proc, `nvidia-smi`) lancé pendant que l'utilisateur démarre le jeu.
