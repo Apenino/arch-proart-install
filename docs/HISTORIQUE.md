@@ -471,3 +471,11 @@ sans échec).
 - `install.sh` : tableau des modules (`--list` affiche rôle et « interface »), un nom inconnu dans `--only/--skip` est refusé.
 - `HYPRBARS="remove"` retire le module sans décharger le plugin.
 - `tests/check.sh` : syntaxe, shellcheck, liste des modules, tests des helpers sur une configuration jetable.
+
+**Alignement de Maverick et fin du `sudo` sans mot de passe (16/10/2026).** Le dépôt a été cloné sur Maverick (le portable) avec
+un `config.env` local qui reflète son état réel (mot de passe SSH déjà coupé, AppArmor en `enforce`) : sans lui, le module
+`security` aurait réécrit `10-hardening.conf` sans `PasswordAuthentication no`. Seuls deux écarts existaient : le profil
+AppArmor `sshd` corrigé (`attach_disconnected`) et le lissage XWayland. Appliqués avec `--only tweaks,security` après un
+`--dry-run`. Le fichier `/etc/sudoers.d/10-nopasswd` posé pendant l'installation a ensuite été supprimé sur les **deux**
+machines (le `sudo` demande de nouveau un mot de passe). Conséquence : les modules qui utilisent `sudo` ne se lancent plus
+sans terminal interactif ; à partir de maintenant ils se lancent depuis une session où l'utilisateur saisit son mot de passe.
