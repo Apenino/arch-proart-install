@@ -75,6 +75,11 @@ _hypr_tweaks() {
         install_user_file "$FILES/hypr/xwayland.lua" "$HOME/.config/hypr/modules/xwayland.lua"
         hypr_require modules.xwayland
     fi
+    # Latence de jeu (facultatif) : tearing autorisé + règle CS2, souris sans accélération libinput
+    if [[ ${GAMING_LATENCY:-no} == yes && -f $HOME/.config/hypr/hyprland.lua ]]; then
+        install_user_file "$FILES/hypr/gaming.lua" "$HOME/.config/hypr/modules/gaming.lua"
+        hypr_require modules.gaming
+    fi
 }
 
 _sddm() {

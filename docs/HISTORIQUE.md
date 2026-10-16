@@ -429,3 +429,11 @@ d'un écran 4K à l'échelle 1,25 : le jeu est agrandi par Hyprland.
 - Piège : `pkill -f motif` lancé par SSH peut se tuer lui-même (la ligne de commande de la session contient le motif) ;
   utiliser `pkill -f '[m]otif'`.
 
+## 20. Réglages de latence de jeu
+
+Module `files/hypr/gaming.lua` (option `GAMING_LATENCY`, chargé après `input.lua`) : tearing autorisé, scanout direct
+automatique, règle `cs2` (`immediate` + plein écran), souris en profil plat. Constat utile : Hyprland 0.56 expose
+`activelyTearing`, `tearingBlockedBy` et `directScanoutBlockedBy` dans `hyprctl monitors -j`, ce qui permet de **vérifier**
+plutôt que supposer. Limite : écran à l'échelle 1,25 + client XWayland empêche a priori le scanout direct (voir
+`PROBLEMES-CONNUS.md` §6). Une souris plate n'agit que sur le bureau (les jeux utilisent le pointeur relatif brut).
+

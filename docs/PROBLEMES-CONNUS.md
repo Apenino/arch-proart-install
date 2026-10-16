@@ -61,6 +61,31 @@ Contournement local non testé : `asynchronous: false` dans `lucidbar/ActiveWind
 
 Menus de Lucid en anglais, sans option de langue (pas de `qsTr`). Seul l'auteur peut l'ajouter.
 
+## 6. Latence de jeu (CS2) — `appliqué`, efficacité `à vérifier en jeu`
+
+**Appliqué** (`files/hypr/gaming.lua`, option `GAMING_LATENCY`) : `general:allow_tearing = true`, `render:direct_scanout = 2`
+(automatique), règle de fenêtre `cs2` en `immediate` + plein écran, souris en profil plat (`accel_profile = "flat"`,
+`sensitivity = 0`). Hyprland accepte l'ensemble sans erreur de configuration.
+
+**Limites connues** (à garder en tête avant d'attendre un gain) :
+
+1. **Écran 60 Hz** (Dell U2718Q ×2) : la réactivité est d'abord limitée par l'écran ; un moniteur 144 à 240 Hz change bien
+   plus que n'importe quel réglage logiciel. Pas de VRR sur ces écrans.
+2. **Le tearing et le scanout direct exigent une fenêtre plein écran non mise à l'échelle par le compositeur.** CS2 est un
+   client XWayland et l'écran est à l'échelle 1,25 : Hyprland agrandit la fenêtre du jeu, ce qui bloque a priori le
+   scanout direct. Le gain n'est donc pas garanti dans cette configuration. Pour l'obtenir : `xwayland:force_zero_scaling`
+   avec le jeu en 3840×2160 (voir §1), ce qui demande de rouvrir la session.
+3. La souris plate ne change que le **bureau** : le jeu reçoit déjà des mouvements bruts (protocole de pointeur relatif).
+
+**Vérification objective, pendant que CS2 est en plein écran** : `hyprctl monitors -j` expose, par écran, `activelyTearing`,
+`tearingBlockedBy` et `directScanoutBlockedBy` (la liste des raisons qui empêchent le tearing/scanout). Au repos :
+`tearingBlockedBy = ['NOT_TORN', 'CANDIDATE']`. Si, en jeu, `activelyTearing` reste `False` et qu'une raison de type
+échelle/plein écran apparaît, c'est la limite n°2.
+
+**Réglage de sensibilité (conseil, non appliqué)** : souris Logitech G502 X à 800 DPI avec `sensitivity 1,99` = eDPI **1 592**,
+au-dessus de la plage habituelle (environ 800 à 1 100). Une valeur de départ proche de `1.0` à `1.25` est un bon essai ;
+changer progressivement et garder la même sensibilité partout.
+
 ## À surveiller (non reproduit)
 
 - Après un crash de Quickshell, des processus enfants restent en doublon (clipboard stocké deux fois) : redémarrer la

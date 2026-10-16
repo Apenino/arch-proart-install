@@ -59,6 +59,7 @@ adresse personnelle n'est dans le dépôt**.
 | `KB_LAYOUT` | clavier Hyprland (sinon celui du système) |
 | `PLYMOUTH_THEME` | `arch-logo` (logo Arch, par défaut) ou `keep` pour garder le thème de la distribution |
 | `XWAYLAND_SMOOTH` | `yes` (défaut) lisse XWayland (Steam...) au lieu de le pixéliser à l'échelle fractionnaire |
+| `GAMING_LATENCY` | `yes` active les réglages de latence de jeu (tearing, règle CS2, souris plate) ; voir `docs/PROBLEMES-CONNUS.md` §6 |
 | `HYPRBARS` | `yes` active le module facultatif hyprbars |
 | `AUR_REVIEW` | `no` installe les paquets AUR sans afficher le `PKGBUILD` (lancement non interactif) ; garde `yes` par défaut |
 | `LUCID_INSTALL_FLAGS` | options de l'installeur de Lucid (ex. `-y --no-apps --no-hypr --no-wallpapers --no-plugins` sur une machine déjà réglée) |
