@@ -28,7 +28,7 @@ on lit si sa fenêtre est XWayland dans `hyprctl clients -j`, puis on la ferme.
 | kitty, Nautilus, Firefox, Discord, Obsidian, VS Code (Code-OSS), Blender, Disques | **Wayland natif** | net |
 | Proton VPN, Proton Pass, Proton Mail | **Wayland natif** | net |
 | **OnlyOffice** | **XWayland** | Qt embarqué avec le seul plugin `xcb` : impossible en Wayland natif |
-| **VLC** | **XWayland** | Qt5 ; `qt5-wayland` est installé, `QT_QPA_PLATFORM=wayland` à tester (la sortie vidéo de VLC 3 reste à vérifier) |
+| **VLC** | **XWayland** | **Wayland natif impossible avec VLC 3.0.24** (testé : `QT_QPA_PLATFORM=wayland` est ignoré, et sans `DISPLAY` l'interface ne démarre pas : « no suitable interface module »). Attendre VLC 4, ou utiliser `mpv`/Celluloid, natifs Wayland |
 | **Steam**, jeux Steam/Proton | **XWayland** | Steam : lissé (voir plus haut) ; les jeux : voir CS2 |
 
 ## 2. CS2 : interface (menus) pixélisée, partie nette — `résolu` (par le lissage XWayland)
