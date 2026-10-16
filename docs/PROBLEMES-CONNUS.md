@@ -121,3 +121,9 @@ une option HDR, elle est à vérifier (certains écrans n'annoncent le HDR qu'un
 Aucune conversion des fichiers (elle dégraderait la qualité). Le vrai HDR sur l'écran suppose que celui-ci l'annonce, puis le mode
 expérimental de Hyprland : non tenté.
 
+
+**Comparaison en direct (16/10/2026)** : même film HDR10 (PQ, BT.2020, 2160p H.265), mpv et VLC côte à côte sur le même écran, démarrés à
+2 ms d'écart (écart de lecture de 109 ms après 4 s), mpv muet. Constat de l'utilisateur : **mpv nettement meilleur, couleurs plus
+saturées et plus belles** ; VLC est ensuite désinstallé. mpv décode avec `nvdec` et rend avec `gpu-next`. Technique de comparaison :
+VLC piloté par MPRIS (`busctl --user`, position et `Pause`/`Play`), mpv par son socket IPC (`--input-ipc-server`, `--start=<position>`),
+lancé avec `hyprctl dispatch "hl.dsp.exec_cmd(...)"` (et non `hyprctl eval`, qui accepte la commande sans l'exécuter).
