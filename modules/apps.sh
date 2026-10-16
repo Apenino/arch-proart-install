@@ -13,6 +13,18 @@ _vulkan_packages() {
     return 0
 }
 
+# mpv : lecteur vidéo par défaut. VLC 3 n'est pas natif Wayland et rend mal le HDR (couleurs ternes) ; mpv ramène le HDR
+# en SDR proprement. Réglages dans files/mpv/mpv.conf (n'écrase pas une config existante différente : sauvegarde .bak).
+_mpv_setup() {
+    install_user_file "$FILES/mpv/mpv.conf" "$HOME/.config/mpv/mpv.conf"
+    command -v xdg-mime >/dev/null 2>&1 || return 0
+    local t
+    for t in video/x-matroska video/mp4 video/webm video/x-msvideo video/quicktime video/mpeg video/x-flv; do
+        [[ "$(xdg-mime query default "$t" 2>/dev/null)" == mpv.desktop ]] || run xdg-mime default mpv.desktop "$t"
+    done
+    ok "mpv : lecteur par défaut (mkv, mp4, webm, avi, mov...)"
+}
+
 module_apps() {
     info "Applications"
 
@@ -21,7 +33,7 @@ module_apps() {
     mapfile -t vk < <(_vulkan_packages)
     ((${#vk[@]})) && pac_install "${vk[@]}"
 
-    pac_install firefox steam blender discord vlc obsidian code proton-vpn-gtk-app
+    pac_install firefox steam blender discord mpv obsidian code proton-vpn-gtk-app
     # Paquets supplémentaires choisis dans config.env (ex. solaar pour du matériel Logitech)
     # shellcheck disable=SC2086
     [[ -n ${EXTRA_PACKAGES:-} ]] && pac_install $EXTRA_PACKAGES
@@ -30,6 +42,8 @@ module_apps() {
     pkg_or_aur proton-pass proton-pass-bin
     pkg_or_aur onlyoffice-bin onlyoffice-bin
     pkg_or_aur proton-mail proton-mail-bin
+
+    _mpv_setup
 
     # Entrées de lanceur inutiles : masquées (NoDisplay), pas désinstallées
     local app dir="$HOME/.local/share/applications"

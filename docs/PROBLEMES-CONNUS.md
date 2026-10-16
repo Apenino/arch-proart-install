@@ -28,7 +28,7 @@ on lit si sa fenêtre est XWayland dans `hyprctl clients -j`, puis on la ferme.
 | kitty, Nautilus, Firefox, Discord, Obsidian, VS Code (Code-OSS), Blender, Disques | **Wayland natif** | net |
 | Proton VPN, Proton Pass, Proton Mail | **Wayland natif** | net |
 | **OnlyOffice** | **XWayland** | Qt embarqué avec le seul plugin `xcb` : impossible en Wayland natif |
-| **VLC** | **XWayland** | **Wayland natif impossible avec VLC 3.0.24** (testé : `QT_QPA_PLATFORM=wayland` est ignoré, et sans `DISPLAY` l'interface ne démarre pas : « no suitable interface module »). Attendre VLC 4, ou utiliser `mpv`/Celluloid, natifs Wayland |
+| **VLC** (remplacé par mpv le 16/10/2026) | **XWayland** | **Wayland natif impossible avec VLC 3.0.24** (testé : `QT_QPA_PLATFORM=wayland` est ignoré, et sans `DISPLAY` l'interface ne démarre pas : « no suitable interface module »). Remplacé par `mpv`, natif Wayland (§8) |
 | **Steam**, jeux Steam/Proton | **XWayland** | Steam : lissé (voir plus haut) ; les jeux : voir CS2 |
 
 ## 2. CS2 : interface (menus) pixélisée, partie nette — `résolu` (par le lissage XWayland)
@@ -108,3 +108,16 @@ fichiers, puis il faut **rouvrir la session**. Pour sortir du mode sans échec :
   session règle le problème.
 - Au lancement d'une application dans un espace de travail spécial (Lucid assigne Discord à `special:comms`), l'espace
   spécial peut s'afficher et prendre le focus un instant.
+
+## 8. Vidéos HDR ternes dans VLC — `corrigé` (lecteur remplacé par mpv)
+
+**Constat** : les vidéos HDR paraissaient délavées dans VLC. **Mesure** : l'EDID des deux Dell U2718Q ne contient **aucun bloc HDR**
+(ni métadonnées `ST2084`/`HLG`, ni gamme BT.2020) et Hyprland les pilote en SDR (8 bits, préréglage `srgb`). Le câble n'est
+pas en cause a priori (l'EDID passe par un canal séparé de l'image, et le 4K 60 Hz fonctionne) ; si le menu de l'écran propose
+une option HDR, elle est à vérifier (certains écrans n'annoncent le HDR qu'une fois activé ou sur une seule entrée).
+
+**Cause** : VLC 3.0 sur Linux ne ramène pas correctement le HDR vers un écran SDR. **Correction** : mpv (`files/mpv/mpv.conf` :
+`vo=gpu-next`, `tone-mapping=bt.2446a`, `hdr-compute-peak=yes`), lecteur par défaut des vidéos, installé par le module `apps`.
+Aucune conversion des fichiers (elle dégraderait la qualité). Le vrai HDR sur l'écran suppose que celui-ci l'annonce, puis le mode
+expérimental de Hyprland : non tenté.
+
