@@ -1,6 +1,8 @@
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="robbyrussell"
 plugins=(git sudo history colored-man-pages)
+# oh-my-zsh est épinglé par l'installeur (OMZ_COMMIT) : pas de mise à jour automatique
+zstyle ':omz:update' mode disabled
 source $ZSH/oh-my-zsh.sh
 
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh

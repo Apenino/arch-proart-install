@@ -5,6 +5,7 @@ Format libre, version la plus récente en haut. Le détail des décisions et des
 ## Non publié
 
 ### Modifié
+- oh-my-zsh **épinglé** sur un commit vérifié (`OMZ_COMMIT`, comme Lucid) et mise à jour automatique désactivée (`.zshrc`).
 - `modules/apps.sh` : `visual-studio-code-bin` (VS Code officiel, AUR) remplace `code` (build libre), pour l'extension Remote-SSH.
 
 ## v1.1.0 — 17/10/2026 : restructuration, tests et réglages vérifiés sur la machine cible

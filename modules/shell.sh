@@ -3,13 +3,24 @@
 # syntax-highlighting. Le prompt starship et la config de kitty sont posés par Lucid (module desktop).
 # shellcheck shell=bash
 
-_clone_or_update() {
-    local url=$1 dest=$2
+OMZ_URL="https://github.com/ohmyzsh/ohmyzsh.git"
+
+# oh-my-zsh épinglé : clonage (ou récupération) puis passage au commit OMZ_COMMIT, vérifié ; la mise à jour
+# automatique est coupée dans .zshrc (zstyle ':omz:update' mode disabled). Mettre à jour = changer OMZ_COMMIT.
+_omz_fetch() {
+    local dest="$HOME/.oh-my-zsh" got
+    info "oh-my-zsh ${OMZ_COMMIT:0:12} : récupération"
+    dry && return 0
     if [[ -d $dest/.git ]]; then
-        run git -C "$dest" pull --ff-only --quiet
+        git -C "$dest" fetch --quiet origin
     else
-        run git clone --depth=1 --quiet "$url" "$dest"
+        git clone --quiet "$OMZ_URL" "$dest"
     fi
+    git -C "$dest" checkout --quiet "$OMZ_COMMIT"
+    got="$(git -C "$dest" rev-parse HEAD)"
+    [[ $got == "$OMZ_COMMIT" ]] \
+        || die "Commit oh-my-zsh inattendu ($got, attendu $OMZ_COMMIT). Vérifie OMZ_COMMIT avant de continuer."
+    ok "Commit vérifié : ${got:0:12}"
 }
 
 # Retire powerlevel10k et les plugins clonés à la main (les paquets système les remplacent).
@@ -50,7 +61,7 @@ module_shell() {
     info "Shell : zsh + oh-my-zsh"
     pac_install zsh zsh-completions zsh-autosuggestions zsh-syntax-highlighting starship kitty ttf-jetbrains-mono-nerd
 
-    _clone_or_update https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh"
+    _omz_fetch
     _remove_p10k
     _install_zshrc
 
