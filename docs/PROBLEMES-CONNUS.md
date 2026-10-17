@@ -172,3 +172,5 @@ ou Apple Music dans Firefox (Widevine déjà géré).
   session règle le problème.
 - Au lancement d'une application dans un espace de travail spécial (Lucid assigne Discord à `special:comms`), l'espace
   spécial peut s'afficher et prendre le focus un instant.
+- Mémoire de Quickshell : 2,6 Go vus une fois après 4,2 h ; au repos 700-770 Mo ; **913 Mo après 8 h 35** de session
+  (mesuré le 17/10/2026). Légère hausse sans emballement : jugé normal pour l'instant, sujet clos sauf récidive.

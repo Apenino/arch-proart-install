@@ -2,6 +2,11 @@
 
 Format libre, version la plus récente en haut. Le détail des décisions et des mesures est dans `docs/HISTORIQUE.md`.
 
+## Non publié
+
+### Modifié
+- `modules/apps.sh` : `visual-studio-code-bin` (VS Code officiel, AUR) remplace `code` (build libre), pour l'extension Remote-SSH.
+
 ## v1.1.0 — 17/10/2026 : restructuration, tests et réglages vérifiés sur la machine cible
 
 ### Ajouté

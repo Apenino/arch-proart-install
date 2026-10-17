@@ -33,7 +33,11 @@ module_apps() {
     mapfile -t vk < <(_vulkan_packages)
     ((${#vk[@]})) && pac_install "${vk[@]}"
 
-    pac_install firefox steam blender discord mpv obsidian code proton-vpn-gtk-app
+    pac_install firefox steam blender discord mpv obsidian proton-vpn-gtk-app
+    # VS Code officiel (Microsoft, AUR) plutôt que « code » (build libre) : seule la version officielle accepte les
+    # extensions Remote-SSH de Microsoft (développement dans des conteneurs/VM). Sur une machine où « code » est déjà
+    # installé, l'assistant AUR proposera de le remplacer (conflit de paquets).
+    pkg_or_aur visual-studio-code-bin visual-studio-code-bin
     # Minecraft Java : Prism Launcher (open source, plusieurs versions et mods) + Java 21 et 25 (versions récentes du jeu). Connexion avec
     # le compte Microsoft de l'utilisateur dans le lanceur : le jeu doit être possédé.
     pac_install prismlauncher jre21-openjdk jre25-openjdk
