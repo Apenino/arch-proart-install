@@ -10,7 +10,7 @@ Chaque entrée indique son **état** : `à corriger`, `à re-tester`, `contourn�
 | 1 | Applications X11 (XWayland) pixélisées ou floues à l'échelle 1,25 | contourné (lissage) ; correctif net optionnel |
 | 2 | CS2 : menus pixélisés | résolu |
 | 3 | Compilation des shaders très longue (NVIDIA) | en amont / normal |
-| 4 | Quickshell plante à l'ouverture d'une application | en amont |
+| 4 | Quickshell plante à l'ouverture d'une application | clos (non reproduit) |
 | 5 | Lucid sans traduction | en amont |
 | 6 | Latence de jeu (CS2) | désactivé, gain non démontré |
 | 7 | Décharger un plugin Hyprland à chaud plante la session | contourné (règle de travail) |
@@ -71,10 +71,13 @@ Mesuré : 32 processus `fossilize_replay` à 100 % d'un cœur (97 % du CPU), dis
 pipelines pour CS2, environ **40 à 60 minutes** au premier lancement ; **à refaire après chaque mise à jour du pilote
 NVIDIA**. Voir `HISTORIQUE.md` §18. Pas de correctif : laisser terminer une fois.
 
-## 4. Quickshell plante à l'ouverture d'une application — `en amont`
+## 4. Quickshell plante à l'ouverture d'une application — `clos (non reproduit)`
 
 Bogue d'icônes asynchrones (Qt 6.12 + Quickshell 0.3.2), déjà signalé en amont. Voir `HISTORIQUE.md` §17.
 Contournement local non testé : `asynchronous: false` dans `lucidbar/ActiveWindow.qml`.
+**17/10/2026** : aucun plantage enregistré (`coredumpctl list quickshell` vide, rien dans le journal sur 3 jours) avec les
+mêmes versions (Qt 6.12.0, Quickshell 0.3.2). Déclencheur probable : le premier lancement de Discord. Clos ; contournement
+gardé en réserve en cas de récidive.
 
 ## 5. Lucid n'a pas de traduction — `en amont`
 
